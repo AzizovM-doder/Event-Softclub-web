@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CalendarDays, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -21,6 +22,7 @@ const Item = ({ to, icon: Icon, label }) => (
 );
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   return (
     <aside className="hidden md:flex md:w-72 md:flex-col h-screen md:gap-6 md:border-r md:bg-background md:p-5">
       <div className="flex items-center justify-between">
@@ -32,8 +34,8 @@ export default function Sidebar() {
       <Separator />
 
       <nav className="flex flex-col gap-2">
-        <Item to="/dashboard/home" icon={LayoutDashboard} label="Dashboard" />
-        <Item to="/dashboard/events" icon={CalendarDays} label="Events" />
+        <Item to="/dashboard/home" icon={LayoutDashboard} label={t("dashboard")} />
+        <Item to="/dashboard/events" icon={CalendarDays} label={t("events")} />
       </nav>
     </aside>
   );

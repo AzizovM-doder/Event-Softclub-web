@@ -1,9 +1,18 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Bell, CheckCheck, Trash2, MapPin, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Bell, CheckCheck, Trash2, MapPin, LogOut, Languages, Moon, Sun } from "lucide-react";
+import { useTheme } from "../../hooks/useTheme";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +23,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import useEventNotifications from "../../hooks/useEventNotifications";
+import { playNotificationSound } from "../../utils/sound";
 import {
   clearAll,
   markAllRead,
@@ -31,8 +41,16 @@ function openGoogleMaps(location) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+const LANG_OPTIONS = [
+  { value: "en", label: "EN" },
+  { value: "ru", label: "RU" },
+  { value: "tj", label: "TJ" },
+];
+
 export default function Topbar() {
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
 
   const user = useSelector((s) => s.auth?.user);
   const eventsState = useSelector((s) => s.events || {});
@@ -73,15 +91,53 @@ export default function Topbar() {
     <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold tracking-tight">events-softclub</p>
-          <span className="text-xs text-muted-foreground">dashboard</span>
+          <p className="text-sm font-semibold tracking-tight">{t("appName")}</p>
+          <span className="text-xs text-muted-foreground">{t("dashboard")}</span>
           {eventsLoading ? (
-            <span className="ml-2 text-[11px] text-muted-foreground">sync…</span>
+            <span className="ml-2 text-[11px] text-muted-foreground">{t("sync")}</span>
           ) : null}
         </div>
-<Button onClick={() => new Audio("/sounds/notify.mp3").play()}>
-  Enable Sound
-</Button>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-2xl"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+          <Select
+            value={(() => {
+              const l = i18n.language?.split("-")[0];
+              return ["en", "ru", "tj"].includes(l) ? l : "en";
+            })()}
+            onValueChange={(v) => {
+              i18n.changeLanguage(v);
+              if (typeof localStorage !== "undefined") localStorage.setItem("lang", v);
+            }}
+          >
+            <SelectTrigger className="h-9 w-[90px] rounded-2xl gap-1.5">
+              <Languages className="h-4 w-4 opacity-70" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANG_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={playNotificationSound}>
+            {t("enableSound")}
+          </Button>
+        </div>
 
         <div className="flex items-center gap-2">
           {/* Notifications */}
@@ -106,9 +162,9 @@ export default function Topbar() {
             >
               <div className="flex items-center justify-between px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold">Notifications</p>
+                  <p className="text-sm font-semibold">{t("notifications")}</p>
                   <p className="text-xs text-muted-foreground">
-                    {unread ? `${unread} unread` : "All caught up"}
+                    {unread ? t("unreadCount", { count: unread }) : t("allCaughtUp")}
                   </p>
                 </div>
 
@@ -121,7 +177,7 @@ export default function Topbar() {
                     disabled={notifs.length === 0 || unread === 0}
                   >
                     <CheckCheck className="mr-2 h-4 w-4" />
-                    Read
+                    {t("read")}
                   </Button>
 
                   <Button
@@ -132,7 +188,7 @@ export default function Topbar() {
                     disabled={notifs.length === 0}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Clear
+                    {t("clear")}
                   </Button>
                 </div>
               </div>
@@ -142,9 +198,9 @@ export default function Topbar() {
               <div className="px-2 py-2">
                 {latest.length === 0 ? (
                   <div className="px-3 py-10 text-center text-sm text-muted-foreground">
-                    No notifications yet.
+                    {t("noNotifications")}
                     <div className="mt-2 text-xs text-muted-foreground">
-                      (Events loaded: {events.length})
+                      ({t("eventsLoaded", { count: events.length })})
                     </div>
                   </div>
                 ) : (
@@ -165,7 +221,7 @@ export default function Topbar() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold">
-                              {n.title || "Notification"}
+                              {n.title || t("notification")}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
                               {n.body || ""}
@@ -175,15 +231,15 @@ export default function Topbar() {
                               {n.location ? (
                                 <Badge variant="secondary" className="rounded-xl">
                                   <MapPin className="mr-1 h-3.5 w-3.5" />
-                                  Open map
+                                  {t("openMap")}
                                 </Badge>
                               ) : null}
 
                               {!n.read ? (
-                                <Badge className="rounded-xl">New</Badge>
+                                <Badge className="rounded-xl">{t("new")}</Badge>
                               ) : (
                                 <Badge variant="outline" className="rounded-xl">
-                                  Read
+                                  {t("read")}
                                 </Badge>
                               )}
                             </div>
@@ -206,7 +262,7 @@ export default function Topbar() {
 
               {notifs.length > 8 && (
                 <div className="border-t px-4 py-3 text-xs text-muted-foreground">
-                  Showing latest 8 (total {notifs.length})
+                  {t("showingLatest", { count: notifs.length })}
                 </div>
               )}
             </DropdownMenuContent>
@@ -222,7 +278,7 @@ export default function Topbar() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden sm:inline text-sm">
-                  {user?.username || user?.userName || user?.name || "Account"}
+                  {user?.username || user?.userName || user?.name || t("account")}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -233,7 +289,7 @@ export default function Topbar() {
                 className="cursor-pointer gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t("logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

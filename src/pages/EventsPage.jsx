@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -130,21 +131,12 @@ function fileToBase64(file) {
   });
 }
 
-const MONTHS = [
-  { value: "all", label: "All months" },
-  { value: "01", label: "January" },
-  { value: "02", label: "February" },
-  { value: "03", label: "March" },
-  { value: "04", label: "April" },
-  { value: "05", label: "May" },
-  { value: "06", label: "June" },
-  { value: "07", label: "July" },
-  { value: "08", label: "August" },
-  { value: "09", label: "September" },
-  { value: "10", label: "October" },
-  { value: "11", label: "November" },
-  { value: "12", label: "December" },
+const MONTH_KEYS = [
+  "allMonths",
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
 ];
+const MONTH_VALUES = ["all", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
 
 function monthFromEvent(e) {
   const d = pickDateInputValue(e?.date); // "YYYY-MM-DD"
@@ -197,6 +189,7 @@ const emptyForm = {
 
 export default function EventsPage() {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.events);
 
   const [q, setQ] = useState("");
@@ -295,48 +288,48 @@ export default function EventsPage() {
       description: (form.description || "").trim(),
     };
 
-    if (!payload.title) return toast.error("Title is required");
-    if (!payload.date) return toast.error("Date is required");
-    if (!payload.time) return toast.error("Time is required");
-    if (!payload.location) return toast.error("Location is required");
+    if (!payload.title) return toast.error(t("titleRequired"));
+    if (!payload.date) return toast.error(t("dateRequired"));
+    if (!payload.time) return toast.error(t("timeRequired"));
+    if (!payload.location) return toast.error(t("locationRequired"));
     if (!payload.coverImage || payload.coverImage === "null")
-      return toast.error("Cover image is required (real URL/Base64)");
-    if (!payload.description) return toast.error("Description is required");
+      return toast.error(t("coverRequired"));
+    if (!payload.description) return toast.error(t("descriptionRequired"));
 
     try {
       if (mode === "create") {
         await dispatch(createEvent(payload)).unwrap();
-        toast.success("Event created");
+        toast.success(t("eventCreated"));
       } else {
         await dispatch(updateEvent({ id: editingId, payload })).unwrap();
-        toast.success("Event updated");
+        toast.success(t("eventUpdated"));
       }
       setOpen(false);
     } catch (e) {
-      toast.error(String(e || "Failed"));
+      toast.error(String(e || t("failed")));
     }
   };
 
   const remove = async (id) => {
     try {
       await dispatch(deleteEvent(id)).unwrap();
-      toast.success("Event deleted");
+      toast.success(t("eventDeleted"));
     } catch (e) {
-      toast.error(String(e || "Failed"));
+      toast.error(String(e || t("failed")));
     }
   };
 
   const onPickFile = async (file) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return toast.error("Pick an image");
-    if (file.size > 2.5 * 1024 * 1024) return toast.error("Max 2.5MB image");
+    if (!file.type.startsWith("image/")) return toast.error(t("pickImage"));
+    if (file.size > 2.5 * 1024 * 1024) return toast.error(t("maxImageSize"));
 
     try {
       const base64 = await fileToBase64(file);
       setForm((p) => ({ ...p, coverImage: base64 }));
-      toast.success("Image loaded");
+      toast.success(t("imageLoaded"));
     } catch {
-      toast.error("Failed to read file");
+      toast.error(t("failedReadFile"));
     }
   };
 
@@ -355,11 +348,11 @@ export default function EventsPage() {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
                 <h2 className="text-2xl font-semibold tracking-tight">
-                  Events
+                  {t("events")}
                 </h2>
               </div>
               <p className="text-sm text-muted-foreground">
-                Cards • Cover + map • URL/Base64
+                {t("eventsSubtitle")}
               </p>
             </div>
 
@@ -371,12 +364,12 @@ export default function EventsPage() {
                 disabled={loading}
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
-                Refresh
+                {t("refresh")}
               </Button>
 
               <Button className="rounded-2xl" onClick={openCreate}>
                 <Plus className="mr-2 h-4 w-4" />
-                New event
+                {t("newEvent")}
               </Button>
             </div>
           </div>
@@ -385,10 +378,9 @@ export default function EventsPage() {
         <Card className="rounded-3xl border bg-background/50 backdrop-blur">
           <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>All events</CardTitle>
+              <CardTitle>{t("allEvents")}</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Showing <span className="font-medium">{filtered.length}</span>{" "}
-                items
+                <Trans i18nKey="showingItems" values={{ count: filtered.length }} components={{ 1: <span className="font-medium" /> }} />
               </p>
             </div>
 
@@ -397,29 +389,29 @@ export default function EventsPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search title, location, description…"
+                placeholder={t("searchPlaceholder")}
                 className="h-10 rounded-2xl bg-background/60 sm:w-72"
               />
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-10 rounded-2xl bg-background/60 sm:w-44">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="active">{t("active")}</SelectItem>
+                  <SelectItem value="inactive">{t("inactive")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="h-10 rounded-2xl bg-background/60 sm:w-44">
-                  <SelectValue placeholder="Month" />
+                  <SelectValue placeholder={t("month")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {MONTHS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      {m.label}
+                  {MONTH_KEYS.map((key, i) => (
+                    <SelectItem key={MONTH_VALUES[i]} value={MONTH_VALUES[i]}>
+                      {t(key)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -453,7 +445,7 @@ export default function EventsPage() {
                             />
                           ) : (
                             <div className="grid h-full w-full place-items-center text-sm text-muted-foreground">
-                              No image
+                              {t("noImage")}
                             </div>
                           )}
                         </div>
@@ -466,7 +458,7 @@ export default function EventsPage() {
                             className="rounded-xl shadow-sm"
                             variant={e.status ? "default" : "secondary"}
                           >
-                            {e.status ? "Active" : "Inactive"}
+                            {e.status ? t("active") : t("inactive")}
                           </Badge>
                         </div>
 
@@ -479,7 +471,7 @@ export default function EventsPage() {
                             disabled={!String(e.location || "").trim()}
                           >
                             <MapPin className="mr-2 h-4 w-4" />
-                            Map
+                            {t("map")}
                           </Button>
                         </div>
 
@@ -530,7 +522,7 @@ export default function EventsPage() {
                             </a>
                           ) : (
                             <span className="text-sm text-muted-foreground">
-                              No location
+                              {t("noLocation")}
                             </span>
                           )}
                         </div>
@@ -542,7 +534,7 @@ export default function EventsPage() {
                             onClick={() => openEdit(e)}
                           >
                             <Pencil className="mr-2 h-4 w-4" />
-                            Edit
+                            {t("edit")}
                           </Button>
 
                           <AlertDialog>
@@ -553,28 +545,27 @@ export default function EventsPage() {
                                 disabled={saving}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                {t("delete")}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-3xl">
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete event?
+                                  {t("deleteEventTitle")}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will remove the event permanently from
-                                  MockAPI.
+                                  {t("deleteEventDescription")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="rounded-2xl">
-                                  Cancel
+                                  {t("cancel")}
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                   className="rounded-2xl"
                                   onClick={() => remove(e.id)}
                                 >
-                                  Delete
+                                  {t("delete")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -587,7 +578,7 @@ export default function EventsPage() {
 
                 {filtered.length === 0 && (
                   <div className="py-10 text-center text-sm text-muted-foreground sm:col-span-2 xl:col-span-3">
-                    No events found.
+                    {t("noEventsFound")}
                   </div>
                 )}
               </div>
@@ -601,7 +592,7 @@ export default function EventsPage() {
           <DialogContent className="w-[min(1200px,96vw)] max-w-none rounded-3xl">
             <DialogHeader>
               <DialogTitle>
-                {mode === "create" ? "Create event" : "Edit event"}
+                {mode === "create" ? t("createEvent") : t("editEvent")}
               </DialogTitle>
             </DialogHeader>
 
@@ -610,19 +601,19 @@ export default function EventsPage() {
               <form onSubmit={submit} className="md:col-span-3 space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Title</Label>
+                    <Label>{t("title")}</Label>
                     <Input
                       value={form.title}
                       onChange={(e) =>
                         setForm((p) => ({ ...p, title: e.target.value }))
                       }
                       className="h-11 rounded-2xl"
-                      placeholder="Event title…"
+                      placeholder={t("eventTitlePlaceholder")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Status</Label>
+                    <Label>{t("status")}</Label>
                     <Select
                       value={form.status ? "active" : "inactive"}
                       onValueChange={(v) =>
@@ -630,17 +621,17 @@ export default function EventsPage() {
                       }
                     >
                       <SelectTrigger className="h-11 rounded-2xl">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t("status")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="active">{t("active")}</SelectItem>
+                        <SelectItem value="inactive">{t("inactive")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Date</Label>
+                    <Label>{t("date")}</Label>
                     <Input
                       type="date"
                       value={form.date}
@@ -652,7 +643,7 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Time</Label>
+                    <Label>{t("time")}</Label>
                     <Input
                       type="time"
                       value={form.time}
@@ -664,20 +655,20 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Location (address or link)</Label>
+                    <Label>{t("locationLabel")}</Label>
                     <Input
                       value={form.location}
                       onChange={(e) =>
                         setForm((p) => ({ ...p, location: e.target.value }))
                       }
                       className="h-11 rounded-2xl"
-                      placeholder="Dushanbe / Google Maps link / any place…"
+                      placeholder={t("locationPlaceholder")}
                     />
                   </div>
 
                   {/* cover */}
                   <div className="md:col-span-2 space-y-2">
-                    <Label>Cover image</Label>
+                    <Label>{t("coverImage")}</Label>
 
                     <Tabs
                       value={coverMode}
@@ -687,11 +678,11 @@ export default function EventsPage() {
                       <TabsList className="grid w-full grid-cols-2 rounded-2xl">
                         <TabsTrigger value="url" className="rounded-2xl">
                           <Link2 className="mr-2 h-4 w-4" />
-                          URL
+                          {t("url")}
                         </TabsTrigger>
                         <TabsTrigger value="base64" className="rounded-2xl">
                           <Upload className="mr-2 h-4 w-4" />
-                          Upload
+                          {t("upload")}
                         </TabsTrigger>
                       </TabsList>
 
@@ -706,10 +697,10 @@ export default function EventsPage() {
                             setForm((p) => ({ ...p, coverImage: e.target.value }))
                           }
                           className="h-11 rounded-2xl"
-                          placeholder="https://..."
+                          placeholder={t("urlPlaceholder")}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Direct image URL.
+                          {t("directImageUrl")}
                         </p>
                       </TabsContent>
 
@@ -722,21 +713,21 @@ export default function EventsPage() {
                           onChange={(e) => onPickFile(e.target.files?.[0])}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Base64 (max 2.5MB).
+                          {t("base64Hint")}
                         </p>
                       </TabsContent>
                     </Tabs>
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Description</Label>
+                    <Label>{t("description")}</Label>
                     <Textarea
                       value={form.description}
                       onChange={(e) =>
                         setForm((p) => ({ ...p, description: e.target.value }))
                       }
                       className="min-h-24 rounded-2xl"
-                      placeholder="Write details…"
+                      placeholder={t("writeDetails")}
                     />
                   </div>
                 </div>
@@ -748,10 +739,10 @@ export default function EventsPage() {
                     className="rounded-2xl"
                     onClick={() => setOpen(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button className="rounded-2xl" disabled={saving}>
-                    {saving ? "Saving…" : mode === "create" ? "Create" : "Update"}
+                    {saving ? t("saving") : mode === "create" ? t("create") : t("update")}
                   </Button>
                 </div>
               </form>
@@ -759,14 +750,14 @@ export default function EventsPage() {
               {/* RIGHT preview */}
               <div className="md:col-span-2 space-y-4">
                 <div className="rounded-2xl border bg-muted/10 p-4">
-                  <p className="text-sm font-medium">Preview</p>
+                  <p className="text-sm font-medium">{t("preview")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Stays compact (no dialog height explosion)
+                    {t("previewHint")}
                   </p>
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border bg-muted/10">
-                  <div className="border-b p-3 text-sm font-medium">Cover</div>
+                  <div className="border-b p-3 text-sm font-medium">{t("cover")}</div>
                   <div className="p-3">
                     {form.coverImage && form.coverImage !== "null" ? (
                       <img
@@ -776,7 +767,7 @@ export default function EventsPage() {
                       />
                     ) : (
                       <div className="grid h-44 w-full place-items-center rounded-2xl bg-muted/20 text-sm text-muted-foreground">
-                        No image
+                        {t("noImage")}
                       </div>
                     )}
                   </div>
@@ -784,7 +775,7 @@ export default function EventsPage() {
 
                 <div className="overflow-hidden rounded-2xl border bg-muted/10">
                   <div className="flex items-center justify-between border-b p-3">
-                    <p className="text-sm font-medium">Map</p>
+                    <p className="text-sm font-medium">{t("map")}</p>
                     <Button
                       type="button"
                       variant="outline"
@@ -793,7 +784,7 @@ export default function EventsPage() {
                       disabled={!form.location?.trim()}
                     >
                       <MapPin className="mr-2 h-4 w-4" />
-                      Open
+                      {t("open")}
                     </Button>
                   </div>
 
@@ -810,7 +801,7 @@ export default function EventsPage() {
                       </div>
                     ) : (
                       <div className="grid h-44 w-full place-items-center rounded-2xl bg-muted/20 text-sm text-muted-foreground">
-                        No location
+                        {t("noLocation")}
                       </div>
                     )}
                   </div>
@@ -818,7 +809,7 @@ export default function EventsPage() {
 
                 <div className="rounded-2xl border bg-muted/10 p-4">
                   <p className="text-xs text-muted-foreground">
-                    Saving format:
+                    {t("savingFormat")}
                   </p>
                   <p className="mt-1 text-xs">
                     date: <span className="font-mono">{form.date || "—"}</span>{" "}

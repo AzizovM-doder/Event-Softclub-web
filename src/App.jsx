@@ -19,7 +19,7 @@ export default function App() {
 
       <Route path="/" element={<Navigate to="/dashboard/home" replace />} />
       <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
-    </Routes>\
+    </Routes>
     <Toaster position="top-right" richColors />
     </>
   );

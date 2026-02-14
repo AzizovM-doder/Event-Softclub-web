@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { pushNotification } from "../features/notifications/notificationsSlice";
+import { playNotificationSound } from "../utils/sound";
 
 const DEFAULT_INTERVAL = 10_000;
 
@@ -17,13 +18,6 @@ const THRESHOLDS = [
   { key: "5m", label: "5 minutes", ms: 5 * 60 * 1000 },
 ];
 
-function playSound() {
-  try {
-    const a = new Audio("/sounds/notify.mp3");
-    a.volume = 2;
-    a.play().catch(() => {});
-  } catch {}
-}
 
 // ✅ extract HH:mm from any ISO string without timezone shifting
 function extractHHMM(iso) {
@@ -102,7 +96,7 @@ export default function useEventNotifications(events = [], opts = {}) {
             );
 
             toast(title, { description: body, duration: 6500 });
-            playSound();
+            playNotificationSound();
           }
 
           prevDiff.current.set(k, diff);
