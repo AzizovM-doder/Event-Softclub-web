@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Bell, CheckCheck, Trash2, MapPin, LogOut, Languages, Moon, Sun } from "lucide-react";
+import { Bell, CheckCheck, Trash2, MapPin, LogOut, Languages, Moon, Sun, Menu, Volume2 } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ const LANG_OPTIONS = [
   { value: "tj", label: "TJ" },
 ];
 
-export default function Topbar() {
+export default function Topbar({ onMobileMenuClick }) {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
@@ -89,16 +89,27 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold tracking-tight">{t("appName")}</p>
-          <span className="text-xs text-muted-foreground">{t("dashboard")}</span>
+      <div className="mx-auto flex w-full max-w-full items-center justify-between gap-2 px-4 py-3 md:max-w-6xl md:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0 rounded-xl md:hidden"
+            onClick={() => onMobileMenuClick?.()}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0 truncate">
+            <p className="truncate text-sm font-semibold tracking-tight">{t("appName")}</p>
+            <span className="hidden text-xs text-muted-foreground sm:inline">{t("dashboard")}</span>
+          </div>
           {eventsLoading ? (
-            <span className="ml-2 text-[11px] text-muted-foreground">{t("sync")}</span>
+            <span className="ml-2 hidden text-[11px] text-muted-foreground sm:inline">{t("sync")}</span>
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -122,8 +133,8 @@ export default function Topbar() {
               if (typeof localStorage !== "undefined") localStorage.setItem("lang", v);
             }}
           >
-            <SelectTrigger className="h-9 w-[90px] rounded-2xl gap-1.5">
-              <Languages className="h-4 w-4 opacity-70" />
+            <SelectTrigger className="h-9 w-[70px] rounded-2xl gap-1 sm:w-[90px]">
+              <Languages className="h-4 w-4 shrink-0 opacity-70" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -134,7 +145,20 @@ export default function Topbar() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={playNotificationSound}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-2xl sm:hidden"
+            onClick={playNotificationSound}
+            aria-label={t("enableSound")}
+          >
+            <Volume2 className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={playNotificationSound}
+            variant="outline"
+            className="hidden h-9 rounded-2xl sm:flex"
+          >
             {t("enableSound")}
           </Button>
         </div>
@@ -158,7 +182,7 @@ export default function Topbar() {
 
             <DropdownMenuContent
               align="end"
-              className="w-105 rounded-3xl p-0"
+              className="w-[min(400px,95vw)] rounded-3xl p-0"
             >
               <div className="flex items-center justify-between px-4 py-3">
                 <div>

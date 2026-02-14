@@ -589,7 +589,7 @@ export default function EventsPage() {
         {/* DIALOG: wide, inputs left, preview right */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild />
-          <DialogContent className="w-[min(1200px,96vw)] max-w-none rounded-3xl">
+          <DialogContent className="max-h-[90vh] w-[min(1200px,96vw)] max-w-none overflow-y-auto rounded-3xl">
             <DialogHeader>
               <DialogTitle>
                 {mode === "create" ? t("createEvent") : t("editEvent")}

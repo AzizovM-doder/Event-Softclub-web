@@ -116,22 +116,22 @@ export default function DashboardHome() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-6 md:space-y-8">
         {/* Hero header */}
-        <div className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/10 via-background to-primary/5 p-6 sm:p-8">
+        <div className="relative rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4 sm:rounded-3xl sm:p-6 md:p-8">
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-primary/5 blur-3xl" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+                <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
                   {t("welcomeBack")}
                 </h1>
               </div>
-              <p className="text-muted-foreground">{t("overview")}</p>
+              <p className="text-sm text-muted-foreground sm:text-base">{t("overview")}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
               <Badge
                 variant="secondary"
                 className="rounded-xl px-3 py-1 text-sm font-medium"
@@ -141,14 +141,14 @@ export default function DashboardHome() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-2xl"
+                className="flex-1 rounded-2xl sm:flex-none"
                 onClick={() => dispatch(fetchEvents())}
                 disabled={loading}
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 {t("refresh")}
               </Button>
-              <Button className="rounded-2xl gap-2" asChild>
+              <Button className="flex-1 rounded-2xl gap-2 sm:flex-none" asChild>
                 <Link to="/dashboard/events">
                   <Plus className="h-4 w-4" />
                   {t("newEvent")}
@@ -159,8 +159,8 @@ export default function DashboardHome() {
         </div>
 
         {/* Stats grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Card className="overflow-hidden rounded-3xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
+          <Card className="overflow-hidden rounded-2xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20 sm:rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("totalEvents")}
@@ -178,7 +178,7 @@ export default function DashboardHome() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-3xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20">
+          <Card className="overflow-hidden rounded-2xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20 sm:rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("active")}
@@ -196,7 +196,7 @@ export default function DashboardHome() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-3xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20">
+          <Card className="overflow-hidden rounded-2xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20 sm:rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("inactive")}
@@ -214,7 +214,7 @@ export default function DashboardHome() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-3xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20 sm:col-span-2">
+          <Card className="overflow-hidden rounded-2xl border bg-card/50 backdrop-blur transition-colors hover:border-primary/20 sm:col-span-2 sm:rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("eventsThisWeek")}
@@ -234,9 +234,9 @@ export default function DashboardHome() {
         </div>
 
         {/* Main content: chart + upcoming + recent */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
           {/* Events by month chart */}
-          <Card className="rounded-3xl border bg-card/50 backdrop-blur lg:col-span-1">
+          <Card className="min-w-0 rounded-2xl border bg-card/50 backdrop-blur sm:rounded-3xl lg:col-span-1">
             <CardHeader>
               <CardTitle className="text-base">{t("eventsByMonth")}</CardTitle>
             </CardHeader>
@@ -248,11 +248,11 @@ export default function DashboardHome() {
                   ))}
                 </div>
               ) : (
-                <div className="flex h-44 items-end gap-1 rounded-xl bg-muted/30 p-4">
+                <div className="flex h-44 items-end gap-1 rounded-xl bg-muted/30 p-3 sm:p-4">
                   {byMonth.map((count, i) => (
                     <div
                       key={i}
-                      className="flex flex-1 flex-col items-center gap-1"
+                      className="flex min-w-0 flex-1 flex-col items-center gap-1"
                     >
                       <div
                         className="w-full min-w-2 rounded-t bg-primary/70 transition-all hover:bg-primary"
@@ -272,7 +272,7 @@ export default function DashboardHome() {
           </Card>
 
           {/* Upcoming events */}
-          <Card className="rounded-3xl border bg-card/50 backdrop-blur lg:col-span-2">
+          <Card className="min-w-0 rounded-2xl border bg-card/50 backdrop-blur sm:rounded-3xl lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">{t("upcomingEvents")}</CardTitle>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
@@ -300,10 +300,10 @@ export default function DashboardHome() {
                       key={e.id}
                       type="button"
                       onClick={() => navigate("/dashboard/events")}
-                      className="flex w-full flex-col gap-2 rounded-2xl border bg-background/50 p-4 text-left transition hover:border-primary/30 hover:bg-muted/30"
+                      className="flex w-full flex-col gap-2 rounded-xl border bg-background/50 p-3 text-left transition hover:border-primary/30 hover:bg-muted/30 sm:rounded-2xl sm:p-4"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium">{truncate(e.title, 50)}</p>
+                      <div className="flex min-w-0 items-start justify-between gap-2">
+                        <p className="min-w-0 truncate font-medium">{truncate(e.title, 50)}</p>
                         <Badge
                           className="rounded-lg shrink-0"
                           variant={e.status ? "default" : "secondary"}
@@ -332,7 +332,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Recent events */}
-        <Card className="rounded-3xl border bg-card/50 backdrop-blur">
+        <Card className="min-w-0 rounded-2xl border bg-card/50 backdrop-blur sm:rounded-3xl">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">{t("recentEvents")}</CardTitle>
             <Button variant="ghost" size="sm" className="rounded-xl" asChild>
@@ -354,11 +354,11 @@ export default function DashboardHome() {
                 {t("noEventsYet")}
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 {recent.map((e) => (
                   <div
                     key={e.id}
-                    className="rounded-2xl border bg-background/50 p-4 transition hover:border-muted-foreground/20"
+                    className="min-w-0 rounded-xl border bg-background/50 p-3 transition hover:border-muted-foreground/20 sm:rounded-2xl sm:p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
