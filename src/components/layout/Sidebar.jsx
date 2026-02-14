@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { CalendarDays, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import logo from "/SoftClub-logo.png";
+import logo from "/SoftClub-logo.svg";
 const Item = ({ to, icon: Icon, label }) => (
   <NavLink
     to={to}
@@ -25,7 +25,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex md:w-72 md:flex-col h-screen md:gap-6 md:border-r md:bg-background md:p-5">
       <div className="flex items-center justify-between">
         <div className="flex w-full flex-col">
-          <img src={logo} alt="SoftClub Logo" className="w-full" />
+          <img src={logo} alt="SoftClub Logo" className="w-full -mt-20" />
         </div>
       </div>
 

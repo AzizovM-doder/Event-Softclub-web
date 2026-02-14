@@ -13,12 +13,14 @@ const THRESHOLDS = [
   { key: "1h", label: "1 hour", ms: 60 * 60 * 1000 },
   { key: "30m", label: "30 minutes", ms: 30 * 60 * 1000 },
   { key: "15m", label: "15 minutes", ms: 15 * 60 * 1000 },
+  { key: "10m", label: "10 minutes", ms: 10 * 60 * 1000 },
+  { key: "5m", label: "5 minutes", ms: 5 * 60 * 1000 },
 ];
 
 function playSound() {
   try {
     const a = new Audio("/sounds/notify.mp3");
-    a.volume = 1;
+    a.volume = 2;
     a.play().catch(() => {});
   } catch {}
 }

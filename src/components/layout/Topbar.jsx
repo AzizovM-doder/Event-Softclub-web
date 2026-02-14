@@ -93,7 +93,7 @@ export default function Topbar() {
               >
                 <Bell className="h-5 w-5" />
                 {unread > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
                     {unread > 99 ? "99+" : unread}
                   </span>
                 )}
@@ -102,7 +102,7 @@ export default function Topbar() {
 
             <DropdownMenuContent
               align="end"
-              className="w-[420px] rounded-3xl p-0"
+              className="w-105 rounded-3xl p-0"
             >
               <div className="flex items-center justify-between px-4 py-3">
                 <div>
