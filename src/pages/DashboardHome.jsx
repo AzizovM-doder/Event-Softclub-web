@@ -116,7 +116,7 @@ export default function DashboardHome() {
 
   return (
     <DashboardLayout>
-      <div className="min-w-0 space-y-6 md:space-y-8">
+      <div className="min-w-0 space-y-6 overflow-hidden md:space-y-8">
         {/* Hero header */}
         <div className="relative rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4 sm:rounded-3xl sm:p-6 md:p-8">
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
