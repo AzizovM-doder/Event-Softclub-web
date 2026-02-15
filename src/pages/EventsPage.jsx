@@ -117,7 +117,7 @@ function openGoogleMaps(location) {
   const loc = (location || "").trim();
   if (!loc) return;
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    loc
+    loc,
   )}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -133,10 +133,34 @@ function fileToBase64(file) {
 
 const MONTH_KEYS = [
   "allMonths",
-  "january", "february", "march", "april", "may", "june",
-  "july", "august", "september", "october", "november", "december",
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
 ];
-const MONTH_VALUES = ["all", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+const MONTH_VALUES = [
+  "all",
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+];
 
 function monthFromEvent(e) {
   const d = pickDateInputValue(e?.date); // "YYYY-MM-DD"
@@ -191,10 +215,14 @@ export default function EventsPage() {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.events);
-
+  const thisMonth =
+    new Date().getMonth() + 1 < 10
+      ? `0${new Date().getMonth() + 1}`
+      : String(new Date().getMonth() + 1);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all|active|inactive
-  const [monthFilter, setMonthFilter] = useState("all"); // all|01..12
+  const [monthFilter, setMonthFilter] = useState(thisMonth); // all|01..12
+  console.log(thisMonth);
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("create"); // create|edit
@@ -380,7 +408,11 @@ export default function EventsPage() {
             <div>
               <CardTitle>{t("allEvents")}</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                <Trans i18nKey="showingItems" values={{ count: filtered.length }} components={{ 1: <span className="font-medium" /> }} />
+                <Trans
+                  i18nKey="showingItems"
+                  values={{ count: filtered.length }}
+                  components={{ 1: <span className="font-medium" /> }}
+                />
               </p>
             </div>
 
@@ -406,7 +438,9 @@ export default function EventsPage() {
 
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="h-10 rounded-2xl bg-background/60 sm:w-44">
-                  <SelectValue placeholder={t("month")} />
+                  <SelectValue
+                    placeholder={t(MONTH_KEYS[new Date().getMonth() + 1])}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {MONTH_KEYS.map((key, i) => (
@@ -510,7 +544,7 @@ export default function EventsPage() {
                                 String(e.location).startsWith("http")
                                   ? e.location
                                   : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                      e.location
+                                      e.location,
                                     )}`
                               }
                               target="_blank"
@@ -589,7 +623,7 @@ export default function EventsPage() {
         {/* DIALOG: wide, inputs left, preview right */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild />
-          <DialogContent className="max-h-[90vh] w-[min(1200px,96vw)] max-w-none overflow-y-auto rounded-3xl">
+          <DialogContent className="max-h-ful lg:min-w-5xl max-w-full rounded-3xl">
             <DialogHeader>
               <DialogTitle>
                 {mode === "create" ? t("createEvent") : t("editEvent")}
@@ -625,7 +659,9 @@ export default function EventsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="active">{t("active")}</SelectItem>
-                        <SelectItem value="inactive">{t("inactive")}</SelectItem>
+                        <SelectItem value="inactive">
+                          {t("inactive")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -694,7 +730,10 @@ export default function EventsPage() {
                               : form.coverImage
                           }
                           onChange={(e) =>
-                            setForm((p) => ({ ...p, coverImage: e.target.value }))
+                            setForm((p) => ({
+                              ...p,
+                              coverImage: e.target.value,
+                            }))
                           }
                           className="h-11 rounded-2xl"
                           placeholder={t("urlPlaceholder")}
@@ -742,7 +781,11 @@ export default function EventsPage() {
                     {t("cancel")}
                   </Button>
                   <Button className="rounded-2xl" disabled={saving}>
-                    {saving ? t("saving") : mode === "create" ? t("create") : t("update")}
+                    {saving
+                      ? t("saving")
+                      : mode === "create"
+                        ? t("create")
+                        : t("update")}
                   </Button>
                 </div>
               </form>
@@ -757,7 +800,9 @@ export default function EventsPage() {
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border bg-muted/10">
-                  <div className="border-b p-3 text-sm font-medium">{t("cover")}</div>
+                  <div className="border-b p-3 text-sm font-medium">
+                    {t("cover")}
+                  </div>
                   <div className="p-3">
                     {form.coverImage && form.coverImage !== "null" ? (
                       <img
