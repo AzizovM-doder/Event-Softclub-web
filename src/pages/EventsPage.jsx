@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -55,7 +54,6 @@ import {
   Sparkles,
   Upload,
   Link2,
-  Info,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -191,7 +189,6 @@ const emptyForm = {
 
 export default function EventsPage() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.events);
 
@@ -531,15 +528,6 @@ export default function EventsPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-2 pt-1">
-                          <Button
-                            variant="outline"
-                            className="h-9 rounded-2xl bg-background/60"
-                            onClick={() => navigate(`/eventsInfo/${e.id}`)}
-                          >
-                            <Info className="mr-2 h-4 w-4" />
-                            {t("info")}
-                          </Button>
-
                           <Button
                             variant="outline"
                             className="h-9 rounded-2xl bg-background/60"

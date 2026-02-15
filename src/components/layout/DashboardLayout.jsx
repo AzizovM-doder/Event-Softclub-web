@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen ove bg-background">
+    <div className="min-h-screen bg-background">
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent
           side="left"
