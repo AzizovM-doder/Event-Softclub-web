@@ -1,15 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const USER = {
-  username: "adminEventSoftclub",
-  password: "123456",
-};
-
 const tokenFromStorage = localStorage.getItem("es_token");
+const userFromStorage = localStorage.getItem("es_user");
 
 const initialState = {
   token: tokenFromStorage || null,
-  user: tokenFromStorage ? { username: USER.username } : null,
+  user: userFromStorage ? JSON.parse(userFromStorage) : (tokenFromStorage ? { name: "Admin User", email: "admin@softclub.tj" } : null),
   error: null,
 };
 
@@ -18,23 +14,24 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login(state, action) {
-      const { username, password } = action.payload;
+      // Expecting payload: { name, email, ... }
+      const user = action.payload;
+      // Generate a mock token
+      const token = "mock-token-" + Date.now();
 
-      if (username === USER.username && password === USER.password) {
-        const token = "events-softclub-token";
-        state.token = token;
-        state.user = { username };
-        state.error = null;
-        localStorage.setItem("es_token", token);
-      } else {
-        state.error = "Wrong username or password";
-      }
+      state.token = token;
+      state.user = user;
+      state.error = null;
+
+      localStorage.setItem("es_token", token);
+      localStorage.setItem("es_user", JSON.stringify(user));
     },
     logout(state) {
       state.token = null;
       state.user = null;
       state.error = null;
       localStorage.removeItem("es_token");
+      localStorage.removeItem("es_user");
     },
     clearAuthError(state) {
       state.error = null;

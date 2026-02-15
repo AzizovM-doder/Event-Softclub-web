@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import logo from "/SoftClub-logo.svg";
 
-const Item = ({ to, icon: Icon, label, onClick }) => (
+// eslint-disable-next-line
+const Item = ({ to, icon: IconComponent, label, onClick }) => (
   <NavLink
     to={to}
     onClick={onClick}
@@ -18,7 +19,7 @@ const Item = ({ to, icon: Icon, label, onClick }) => (
       )
     }
   >
-    <Icon className="h-4 w-4" />
+    <IconComponent className="h-4 w-4" />
     <span>{label}</span>
   </NavLink>
 );

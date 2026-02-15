@@ -55,8 +55,10 @@ import {
   Upload,
   Link2,
 } from "lucide-react";
-
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
 
 /* ---------------- helpers (NO timezone bugs) ---------------- */
 
@@ -191,10 +193,10 @@ export default function EventsPage() {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.events);
-
+  const thisMonth = new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : new Date().getMonth() + 1;
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all|active|inactive
-  const [monthFilter, setMonthFilter] = useState("all"); // all|01..12
+  const [monthFilter, setMonthFilter] = useState(thisMonth); // all|01..12
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("create"); // create|edit
@@ -339,27 +341,29 @@ export default function EventsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header glow */}
-        <div className="relative overflow-hidden rounded-3xl border bg-background/40 p-5 backdrop-blur">
-          <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-muted/50 blur-3xl" />
-          <div className="pointer-events-none absolute -right-24 -bottom-24 h-64 w-64 rounded-full bg-muted/40 blur-3xl" />
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-sky-600/10 via-background to-blue-600/10 p-6 backdrop-blur-xl transition-all hover:shadow-lg hover:shadow-sky-500/5">
+          <div className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full bg-sky-500/10 blur-[100px]" />
+          <div className="pointer-events-none absolute -right-20 -bottom-20 h-80 w-80 rounded-full bg-blue-500/10 blur-[100px]" />
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                <h2 className="text-2xl font-semibold tracking-tight">
+          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 p-2 text-white shadow-lg shadow-sky-500/25">
+                   <Sparkles className="h-5 w-5" />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   {t("events")}
                 </h2>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground/80 max-w-2xl">
                 {t("eventsSubtitle")}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 variant="outline"
-                className="rounded-2xl bg-background/60"
+                className="h-10 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 backdrop-blur"
                 onClick={() => dispatch(fetchEvents())}
                 disabled={loading}
               >
@@ -367,7 +371,7 @@ export default function EventsPage() {
                 {t("refresh")}
               </Button>
 
-              <Button className="rounded-2xl" onClick={openCreate}>
+              <Button className="h-10 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all border-0" onClick={openCreate}>
                 <Plus className="mr-2 h-4 w-4" />
                 {t("newEvent")}
               </Button>
@@ -375,29 +379,29 @@ export default function EventsPage() {
           </div>
         </div>
 
-        <Card className="rounded-3xl border bg-background/50 backdrop-blur">
-          <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-sm">
+          <CardHeader className="gap-4 border-b border-white/5 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>{t("allEvents")}</CardTitle>
+              <CardTitle className="text-xl">{t("allEvents")}</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                <Trans i18nKey="showingItems" values={{ count: filtered.length }} components={{ 1: <span className="font-medium" /> }} />
+                <Trans i18nKey="showingItems" values={{ count: filtered.length }} components={{ 1: <span className="font-medium text-foreground" /> }} />
               </p>
             </div>
 
             {/* Filters */}
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={t("searchPlaceholder")}
-                className="h-10 rounded-2xl bg-background/60 sm:w-72"
+                className="h-10 rounded-xl bg-white/5 border-white/10 focus:border-primary/50 transition-colors sm:w-64"
               />
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-10 rounded-2xl bg-background/60 sm:w-44">
+                <SelectTrigger className="h-10 rounded-xl bg-white/5 border-white/10 sm:w-40">
                   <SelectValue placeholder={t("status")} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
                   <SelectItem value="all">{t("all")}</SelectItem>
                   <SelectItem value="active">{t("active")}</SelectItem>
                   <SelectItem value="inactive">{t("inactive")}</SelectItem>
@@ -405,10 +409,10 @@ export default function EventsPage() {
               </Select>
 
               <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="h-10 rounded-2xl bg-background/60 sm:w-44">
+                <SelectTrigger className="h-10 rounded-xl bg-white/5 border-white/10 sm:w-40">
                   <SelectValue placeholder={t("month")} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="h-64 rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
                   {MONTH_KEYS.map((key, i) => (
                     <SelectItem key={MONTH_VALUES[i]} value={MONTH_VALUES[i]}>
                       {t(key)}
@@ -423,162 +427,142 @@ export default function EventsPage() {
             {loading ? (
               <CardsSkeleton />
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((e) => {
-                  const mapSrc = getMapEmbedSrc(e.location);
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                {filtered.map((e, idx) => {
                   const dateStr = pickDateInputValue(e.date);
                   const timeStr = pickTimeInputValue(e.time);
 
                   return (
-                    <Card
+                    <motion.div
                       key={e.id}
-                      className="rounded-3xl pt-0 overflow-hidden border bg-background/55 backdrop-blur transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
                     >
-                      {/* cover */}
-                      <div className="relative">
-                        <div className="h-56 w-full bg-muted/20 overflow-hidden">
+                      <Card className="group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-white/20">
+                        {/* cover */}
+                        <div className="relative h-56 w-full overflow-hidden bg-muted/20">
                           {e.coverImage && e.coverImage !== "null" ? (
                             <img
                               src={e.coverImage}
                               alt="cover"
-                              className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.04]"
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                           ) : (
-                            <div className="grid h-full w-full place-items-center text-sm text-muted-foreground">
-                              {t("noImage")}
+                            <div className="grid h-full w-full place-items-center text-sm text-muted-foreground bg-muted/10">
+                              <Sparkles className="h-10 w-10 opacity-20" />
                             </div>
                           )}
-                        </div>
 
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent" />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/20 to-transparent" />
-
-                        <div className="absolute left-3 top-3">
-                          <Badge
-                            className="rounded-xl shadow-sm"
-                            variant={e.status ? "default" : "secondary"}
-                          >
-                            {e.status ? t("active") : t("inactive")}
-                          </Badge>
-                        </div>
-
-                        <div className="absolute right-3 top-3">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            className="h-9 rounded-2xl bg-background/70 backdrop-blur"
-                            onClick={() => openGoogleMaps(e.location)}
-                            disabled={!String(e.location || "").trim()}
-                          >
-                            <MapPin className="mr-2 h-4 w-4" />
-                            {t("map")}
-                          </Button>
-                        </div>
-
-                        {mapSrc && (
-                          <div className="absolute bottom-3 left-3 right-3 overflow-hidden rounded-2xl border bg-background/35 backdrop-blur">
-                            <iframe
-                              title={`map-${e.id}`}
-                              src={mapSrc}
-                              className="h-28 w-full"
-                              loading="lazy"
-                              referrerPolicy="no-referrer-when-downgrade"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <CardContent className="p-4 space-y-3">
-                        <div className="space-y-1">
-                          <p className="font-semibold leading-snug">
-                            {truncate(e.title, 80)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {dateStr || "---- -- --"}{" "}
-                            {timeStr ? `• ${timeStr}` : ""}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border bg-background/40 p-3 text-sm text-muted-foreground">
-                          {truncate(e.description, 150)}
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2">
-                          {String(e.location || "").trim() ? (
-                            <a
-                              href={
-                                String(e.location).startsWith("http")
-                                  ? e.location
-                                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                      e.location
-                                    )}`
-                              }
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-2 text-sm underline underline-offset-4 hover:opacity-80"
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-80" />
+                          
+                          <div className="absolute left-3 top-3">
+                            <Badge
+                              className={`rounded-xl shadow-lg backdrop-blur-md ${e.status ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" : "bg-zinc-500/20 text-zinc-500 border-zinc-500/30"}`}
+                              variant="outline"
                             >
-                              <ExternalLink className="h-4 w-4" />
-                              {truncate(e.location, 28)}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">
-                              {t("noLocation")}
-                            </span>
-                          )}
+                              {e.status ? t("active") : t("inactive")}
+                            </Badge>
+                          </div>
+
+                          <div className="absolute right-3 top-3 flex gap-2">
+                             <Button
+                              type="button"
+                              size="icon"
+                              variant="secondary"
+                              className="h-9 w-9 rounded-xl bg-black/40 text-white backdrop-blur hover:bg-black/60 border-0"
+                              onClick={() => openGoogleMaps(e.location)}
+                              disabled={!String(e.location || "").trim()}
+                              title={t("map")}
+                            >
+                              <MapPin className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <Button
-                            variant="outline"
-                            className="h-9 rounded-2xl bg-background/60"
-                            onClick={() => openEdit(e)}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            {t("edit")}
-                          </Button>
+                        <CardContent className="p-5 space-y-4">
+                          <div className="space-y-1.5">
+                            <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors line-clamp-1">
+                              {truncate(e.title, 50)}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
+                               <div className="flex items-center gap-1.5 bg-secondary/30 px-2 py-1 rounded-md">
+                                  <span className="font-medium">{dateStr || "—"}</span>
+                                  {timeStr && <span>• {timeStr}</span>}
+                               </div>
+                            </div>
+                          </div>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="destructive"
-                                className="h-9 rounded-2xl"
-                                disabled={saving}
+                          <div className="rounded-xl border border-white/5 bg-white/5 p-3 text-sm text-muted-foreground leading-relaxed line-clamp-3 min-h-[4.5rem]">
+                            {truncate(e.description, 120)}
+                          </div>
+
+                          <div className="pt-2 flex items-center gap-2">
+                                <Button
+                                 className="flex-1 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all border-0 h-10"
+                                 asChild
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                {t("delete")}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="rounded-3xl">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  {t("deleteEventTitle")}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {t("deleteEventDescription")}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="rounded-2xl">
-                                  {t("cancel")}
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="rounded-2xl"
-                                  onClick={() => remove(e.id)}
+                                <Link to={`/dashboard/events/${e.id}`}>
+                                  {t("info")} <Link2 className="ml-2 h-4 w-4" />
+                                </Link>
+                             </Button>
+
+                             <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-10 w-10 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+                                  onClick={() => openEdit(e)}
+                                  title={t("edit")}
                                 >
-                                  {t("delete")}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </CardContent>
-                    </Card>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-10 w-10 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                                      disabled={saving}
+                                      title={t("delete")}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="rounded-3xl border-white/10 bg-black/90 backdrop-blur-xl">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>{t("deleteEventTitle")}</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {t("deleteEventDescription")}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10">{t("cancel")}</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="rounded-xl bg-red-600 hover:bg-red-700"
+                                        onClick={() => remove(e.id)}
+                                      >
+                                        {t("delete")}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                             </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   );
                 })}
 
                 {filtered.length === 0 && (
-                  <div className="py-10 text-center text-sm text-muted-foreground sm:col-span-2 xl:col-span-3">
-                    {t("noEventsFound")}
+                  <div className="py-20 text-center col-span-full">
+                    <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
+                        <Sparkles className="h-10 w-10 opacity-20" />
+                    </div>
+                    <p className="text-muted-foreground text-lg">{t("noEventsFound")}</p>
                   </div>
                 )}
               </div>
@@ -589,17 +573,20 @@ export default function EventsPage() {
         {/* DIALOG: wide, inputs left, preview right */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild />
-          <DialogContent className="max-h-[90vh] w-[min(1200px,96vw)] max-w-none overflow-y-auto rounded-3xl">
-            <DialogHeader>
-              <DialogTitle>
-                {mode === "create" ? t("createEvent") : t("editEvent")}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="grid gap-6 md:grid-cols-5">
+          <DialogContent className="max-h-[95vh] w-full max-w-6xl overflow-y-auto rounded-3xl border-white/10 bg-background/80 backdrop-blur-2xl p-0 gap-0">
+             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-background/50 px-6 py-4 backdrop-blur-xl">
+                <DialogTitle className="text-xl font-bold">
+                  {mode === "create" ? t("createEvent") : t("editEvent")}
+                </DialogTitle>
+                {/* Close button is automatically added by Radix UI, we can just leave this header clean or add custom close if needed, but existing is fine */}
+             </div>
+             
+             <div className="p-6">
+                {/* Wrap content to ensure padding */}
+                <div className="grid gap-8 lg:grid-cols-5">
               {/* LEFT inputs */}
-              <form onSubmit={submit} className="md:col-span-3 space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+              <form onSubmit={submit} className="lg:col-span-3 space-y-6">
+                <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>{t("title")}</Label>
                     <Input
@@ -607,10 +594,11 @@ export default function EventsPage() {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, title: e.target.value }))
                       }
-                      className="h-11 rounded-2xl"
+                      className="h-11 rounded-xl bg-white/5 border-white/10 focus:border-primary/50 transition-colors"
                       placeholder={t("eventTitlePlaceholder")}
                     />
                   </div>
+
 
                   <div className="space-y-2">
                     <Label>{t("status")}</Label>
@@ -620,10 +608,10 @@ export default function EventsPage() {
                         setForm((p) => ({ ...p, status: v === "active" }))
                       }
                     >
-                      <SelectTrigger className="h-11 rounded-2xl">
+                      <SelectTrigger className="h-11 rounded-xl bg-white/5 border-white/10">
                         <SelectValue placeholder={t("status")} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
                         <SelectItem value="active">{t("active")}</SelectItem>
                         <SelectItem value="inactive">{t("inactive")}</SelectItem>
                       </SelectContent>
@@ -638,7 +626,7 @@ export default function EventsPage() {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, date: e.target.value }))
                       }
-                      className="h-11 rounded-2xl"
+                      className="h-11 rounded-xl bg-white/5 border-white/10"
                     />
                   </div>
 
@@ -650,24 +638,24 @@ export default function EventsPage() {
                       onChange={(e) =>
                         setForm((p) => ({ ...p, time: e.target.value }))
                       }
-                      className="h-11 rounded-2xl"
+                      className="h-11 rounded-xl bg-white/5 border-white/10"
                     />
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2 lg:col-span-2">
                     <Label>{t("locationLabel")}</Label>
                     <Input
                       value={form.location}
                       onChange={(e) =>
                         setForm((p) => ({ ...p, location: e.target.value }))
                       }
-                      className="h-11 rounded-2xl"
+                      className="h-11 rounded-xl bg-white/5 border-white/10"
                       placeholder={t("locationPlaceholder")}
                     />
                   </div>
 
                   {/* cover */}
-                  <div className="md:col-span-2 space-y-2">
+                  <div className="lg:col-span-2 space-y-2">
                     <Label>{t("coverImage")}</Label>
 
                     <Tabs
@@ -675,18 +663,18 @@ export default function EventsPage() {
                       onValueChange={(v) => setCoverMode(v)}
                       className="w-full"
                     >
-                      <TabsList className="grid w-full grid-cols-2 rounded-2xl">
-                        <TabsTrigger value="url" className="rounded-2xl">
+                      <TabsList className="grid w-full grid-cols-2 rounded-xl bg-white/5 p-1 h-12">
+                        <TabsTrigger value="url" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary h-10">
                           <Link2 className="mr-2 h-4 w-4" />
                           {t("url")}
                         </TabsTrigger>
-                        <TabsTrigger value="base64" className="rounded-2xl">
+                        <TabsTrigger value="base64" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary h-10">
                           <Upload className="mr-2 h-4 w-4" />
                           {t("upload")}
                         </TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="url" className="mt-3 space-y-2">
+                      <TabsContent value="url" className="mt-4 space-y-2">
                         <Input
                           value={
                             form.coverImage?.startsWith("data:image/")
@@ -696,7 +684,7 @@ export default function EventsPage() {
                           onChange={(e) =>
                             setForm((p) => ({ ...p, coverImage: e.target.value }))
                           }
-                          className="h-11 rounded-2xl"
+                          className="h-11 rounded-xl bg-white/5 border-white/10"
                           placeholder={t("urlPlaceholder")}
                         />
                         <p className="text-xs text-muted-foreground">
@@ -704,12 +692,12 @@ export default function EventsPage() {
                         </p>
                       </TabsContent>
 
-                      <TabsContent value="base64" className="mt-3 space-y-2">
+                      <TabsContent value="base64" className="mt-4 space-y-2">
                         <Input
                           ref={fileRef}
                           type="file"
                           accept="image/*"
-                          className="h-11 rounded-2xl"
+                          className="h-11 rounded-xl bg-white/5 border-white/10 file:text-primary"
                           onChange={(e) => onPickFile(e.target.files?.[0])}
                         />
                         <p className="text-xs text-muted-foreground">
@@ -719,36 +707,36 @@ export default function EventsPage() {
                     </Tabs>
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2 lg:col-span-2">
                     <Label>{t("description")}</Label>
                     <Textarea
                       value={form.description}
                       onChange={(e) =>
                         setForm((p) => ({ ...p, description: e.target.value }))
                       }
-                      className="min-h-24 rounded-2xl"
+                      className="min-h-24 rounded-xl bg-white/5 border-white/10"
                       placeholder={t("writeDetails")}
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-3 pt-4">
                   <Button
                     type="button"
-                    variant="outline"
-                    className="rounded-2xl"
+                    variant="ghost"
+                    className="rounded-xl hover:bg-white/5"
                     onClick={() => setOpen(false)}
                   >
                     {t("cancel")}
                   </Button>
-                  <Button className="rounded-2xl" disabled={saving}>
+                  <Button className="rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40" disabled={saving}>
                     {saving ? t("saving") : mode === "create" ? t("create") : t("update")}
                   </Button>
                 </div>
               </form>
 
               {/* RIGHT preview */}
-              <div className="md:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-4">
                 <div className="rounded-2xl border bg-muted/10 p-4">
                   <p className="text-sm font-medium">{t("preview")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -819,7 +807,8 @@ export default function EventsPage() {
                 </div>
               </div>
             </div>
-          </DialogContent>
+          </div>
+        </DialogContent>
         </Dialog>
       </div>
     </DashboardLayout>

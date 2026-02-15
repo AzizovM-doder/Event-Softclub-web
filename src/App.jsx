@@ -4,6 +4,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
 import DashboardHome from "./pages/DashboardHome";
 import EventsPage from "./pages/EventsPage";
+import EventInfoPage from "./pages/EventInfoPage";
 import { Toaster } from "sonner";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard/home" element={<DashboardHome />} />
         <Route path="/dashboard/events" element={<EventsPage />} />
+        <Route path="/dashboard/events/:id" element={<EventInfoPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard/home" replace />} />

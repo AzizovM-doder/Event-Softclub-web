@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Sparkles,
 } from "lucide-react";
+import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
 
 /* ---------------- helpers ---------------- */
 
@@ -93,14 +94,14 @@ export default function EventInfoPage() {
     return (
       <DashboardLayout>
         <div className="space-y-6">
-          <Skeleton className="h-12 w-64 rounded-3xl" />
-          <Card className="rounded-3xl overflow-hidden">
-            <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-12 w-64 rounded-3xl bg-white/5" />
+          <Card className="rounded-3xl overflow-hidden border-white/10 bg-white/5">
+            <Skeleton className="h-96 w-full bg-white/5" />
             <CardContent className="p-6 space-y-4">
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-8 w-3/4 bg-white/5" />
+              <Skeleton className="h-4 w-full bg-white/5" />
+              <Skeleton className="h-4 w-full bg-white/5" />
+              <Skeleton className="h-4 w-2/3 bg-white/5" />
             </CardContent>
           </Card>
         </div>
@@ -112,20 +113,24 @@ export default function EventInfoPage() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Card className="rounded-3xl p-8 text-center">
-            <Sparkles className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h2 className="text-xl font-semibold">{t("eventNotFound")}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("eventNotFoundDescription")}
-            </p>
-            <Button
-              className="mt-6 rounded-2xl"
-              onClick={() => navigate("/events")}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("backToEvents")}
-            </Button>
-          </Card>
+          <Scale>
+            <Card className="rounded-3xl p-10 text-center border-white/10 bg-white/5 backdrop-blur-xl">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/20">
+                <Sparkles className="h-10 w-10 text-muted-foreground opacity-50" />
+              </div>
+              <h2 className="text-2xl font-bold">{t("eventNotFound")}</h2>
+              <p className="mt-3 text-base text-muted-foreground max-w-xs mx-auto">
+                {t("eventNotFoundDescription")}
+              </p>
+              <Button
+                className="mt-8 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all h-11 px-8"
+                onClick={() => navigate("/dashboard/events")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("backToEvents")}
+              </Button>
+            </Card>
+          </Scale>
         </div>
       </DashboardLayout>
     );
@@ -137,190 +142,187 @@ export default function EventInfoPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header with back button */}
-        <div className="flex items-center gap-4">
+        <FadeIn className="flex items-center gap-4">
           <Button
             variant="outline"
-            className="rounded-2xl"
+            className="h-10 w-10 rounded-full border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 p-0"
             onClick={() => navigate(-1)}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back")}
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            <h2 className="text-2xl font-semibold tracking-tight">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 p-2 text-white shadow-lg shadow-sky-500/25">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               {t("eventDetails")}
             </h2>
           </div>
-        </div>
+        </FadeIn>
 
         {/* Main content */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* Left column - main info */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* Cover image */}
-            <Card className="rounded-3xl overflow-hidden border bg-background/50 backdrop-blur">
-              <div className="relative h-96 w-full bg-muted/20">
-                {event.coverImage && event.coverImage !== "null" ? (
-                  <img
-                    src={event.coverImage}
-                    alt={event.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="grid h-full w-full place-items-center text-muted-foreground">
-                    {t("noImage")}
+            <SlideIn delay={0.1}>
+              <Card className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+                <div className="relative h-96 w-full bg-muted/20 overflow-hidden">
+                  {event.coverImage && event.coverImage !== "null" ? (
+                    <img
+                      src={event.coverImage}
+                      alt={event.title}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-muted-foreground bg-muted/10">
+                      <Sparkles className="h-16 w-16 opacity-10" />
+                      <span className="mt-4 opacity-50">{t("noImage")}</span>
+                    </div>
+                  )}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
+                  <div className="absolute bottom-8 left-8">
+                    <Badge
+                      className={`rounded-xl px-4 py-1.5 text-sm shadow-xl backdrop-blur-md ${event.status ? "bg-emerald-500/80 text-white border-emerald-400/50" : "bg-zinc-500/80 text-white border-zinc-400/50"}`}
+                      variant="outline"
+                    >
+                      {event.status ? t("active") : t("inactive")}
+                    </Badge>
                   </div>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent" />
-                <div className="absolute bottom-6 left-6">
-                  <Badge
-                    className="rounded-xl shadow-lg"
-                    variant={event.status ? "default" : "secondary"}
-                  >
-                    {event.status ? t("active") : t("inactive")}
-                  </Badge>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </SlideIn>
 
             {/* Title & description */}
-            <Card className="rounded-3xl border bg-background/50 backdrop-blur">
-              <CardContent className="p-6 space-y-4">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  {event.title}
-                </h1>
-                <div className="prose prose-sm max-w-none text-muted-foreground">
-                  <p className="whitespace-pre-wrap">{event.description}</p>
-                </div>
-              </CardContent>
-            </Card>
+            <SlideIn delay={0.2}>
+              <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+                <CardContent className="p-8 space-y-6">
+                  <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">
+                    {event.title}
+                  </h1>
+                  <div className="h-px w-20 bg-gradient-to-r from-sky-500 to-blue-500" />
+                  <div className="prose prose-lg max-w-none text-muted-foreground/90 leading-relaxed">
+                    <p className="whitespace-pre-wrap">{event.description}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </SlideIn>
 
             {/* Map */}
             {mapSrc && (
-              <Card className="rounded-3xl border bg-background/50 backdrop-blur overflow-hidden">
-                <div className="flex items-center justify-between border-b bg-background/40 p-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    <p className="font-medium">{t("location")}</p>
+              <SlideIn delay={0.3}>
+                <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden shadow-lg">
+                  <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-5 backdrop-blur-md">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-blue-500/10 p-2 text-blue-500">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <p className="font-semibold">{t("location")}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10"
+                      onClick={() => openGoogleMaps(event.location)}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      {t("openInMaps")}
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="rounded-2xl"
-                    onClick={() => openGoogleMaps(event.location)}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    {t("openInMaps")}
-                  </Button>
-                </div>
-                <iframe
-                  title={`event-map-${event.id}`}
-                  src={mapSrc}
-                  className="h-96 w-full"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </Card>
+                  <iframe
+                    title={`event-map-${event.id}`}
+                    src={mapSrc}
+                    className="h-96 w-full grayscale-[0.5] invert-[0.1] contrast-[1.1] transition-all hover:grayscale-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </Card>
+              </SlideIn>
             )}
           </div>
 
           {/* Right column - details sidebar */}
           <div className="space-y-6">
             {/* Date & Time card */}
-            <Card className="rounded-3xl border bg-background/50 backdrop-blur">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-2xl bg-primary/10 p-3">
-                    <Calendar className="h-5 w-5 text-primary" />
+            <Scale delay={0.2} className="h-full">
+              <div className="sticky top-24 space-y-6">
+                <Card className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl shadow-xl overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Calendar className="h-32 w-32 -mr-10 -mt-10 rotate-12" />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("date")}
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {dateStr ? formatDate(dateStr) : t("notSpecified")}
-                    </p>
-                  </div>
-                </div>
+                  
+                  <CardContent className="p-6 space-y-6 relative">
+                    <h3 className="font-semibold text-lg border-b border-white/10 pb-4">{t("dateTime")}</h3>
+                    
+                    <div className="flex items-start gap-4 group">
+                      <div className="rounded-2xl bg-sky-500/10 p-3 text-sky-500 ring-1 ring-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
+                        <Calendar className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          {t("date")}
+                        </p>
+                        <p className="text-lg font-semibold">
+                          {dateStr ? formatDate(dateStr) : t("notSpecified")}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="h-px bg-border" />
+                    <div className="flex items-start gap-4 group">
+                      <div className="rounded-2xl bg-blue-500/10 p-3 text-blue-500 ring-1 ring-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
+                        <Clock className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          {t("time")}
+                        </p>
+                        <p className="text-lg font-semibold">
+                          {timeStr || t("notSpecified")}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div className="flex items-start gap-3">
-                  <div className="rounded-2xl bg-primary/10 p-3">
-                    <Clock className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("time")}
-                    </p>
-                    <p className="text-lg font-semibold">
-                      {timeStr || t("notSpecified")}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Location card */}
-            <Card className="rounded-3xl border bg-background/50 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-2xl bg-primary/10 p-3">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("locationLabel")}
-                    </p>
-                    {String(event.location || "").trim() ? (
-                      <a
-                        href={
-                          String(event.location).startsWith("http")
-                            ? event.location
-                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                event.location
-                              )}`
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-lg font-semibold underline underline-offset-4 hover:opacity-80"
-                      >
-                        {event.location}
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    ) : (
-                      <p className="text-lg font-semibold text-muted-foreground">
-                        {t("notSpecified")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Status card */}
-            <Card className="rounded-3xl border bg-background/50 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-2xl bg-primary/10 p-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("status")}
-                    </p>
-                    <Badge
-                      className="rounded-xl"
-                      variant={event.status ? "default" : "secondary"}
-                    >
-                      {event.status ? t("active") : t("inactive")}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                {/* Location card */}
+                <Card className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl shadow-xl">
+                  <CardContent className="p-6 space-y-4">
+                    <h3 className="font-semibold text-lg border-b border-white/10 pb-4">{t("locationLabel")}</h3>
+                    <div className="flex items-start gap-4">
+                      <div className="rounded-2xl bg-blue-500/10 p-3 text-blue-500 ring-1 ring-blue-500/20">
+                        <MapPin className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        {String(event.location || "").trim() ? (
+                          <a
+                            href={
+                              String(event.location).startsWith("http")
+                                ? event.location
+                                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                    event.location
+                                  )}`
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex flex-col gap-1 text-base font-medium hover:opacity-80 transition-opacity"
+                          >
+                            <span className="underline underline-offset-4 decoration-blue-500/50 hover:decoration-blue-500">{event.location}</span>
+                            <span className="text-xs text-blue-400 flex items-center gap-1">
+                               {t("openInMaps")} <ExternalLink className="h-3 w-3" />
+                            </span>
+                          </a>
+                        ) : (
+                          <p className="text-base font-medium text-muted-foreground">
+                            {t("notSpecified")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </Scale>
           </div>
         </div>
       </div>

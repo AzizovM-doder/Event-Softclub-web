@@ -27,5 +27,7 @@ function playBeepFallback() {
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.15);
-  } catch {}
+  } catch {
+    // ignore
+  }
 }

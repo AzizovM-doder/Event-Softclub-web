@@ -67,17 +67,17 @@ export default function Topbar({ onMobileMenuClick }) {
     if (!eventsLoading && (!events || events.length === 0)) {
       dispatch(fetchEvents());
     }
-  }, [dispatch, eventsLoading, events?.length]);
+  }, [dispatch, eventsLoading, events]);
 
   // ✅ GLOBAL notifier
   useEventNotifications(events, { pollMs: 10_000 }); // test. later 30_000
 
   const unread = useMemo(
-    () => notifs.reduce((acc, n) => acc + (n?.read ? 0 : 1), 0),
+    () => (notifs || []).reduce((acc, n) => acc + (n?.read ? 0 : 1), 0),
     [notifs]
   );
 
-  const latest = useMemo(() => notifs.slice(0, 8), [notifs]);
+  const latest = useMemo(() => (notifs || []).slice(0, 8), [notifs]);
 
   const initials = useMemo(() => {
     const name = (user?.username || user?.userName || user?.name || "A").trim();
@@ -88,41 +88,44 @@ export default function Topbar({ onMobileMenuClick }) {
   }, [user]);
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-full items-center justify-between gap-2 px-4 py-3 md:max-w-6xl md:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+    <header className="sticky top-0 z-40 border-b border-white/5 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex w-full max-w-full items-center justify-between gap-4 px-4 py-3 md:max-w-7xl md:px-8">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 shrink-0 rounded-xl md:hidden"
+            className="h-10 w-10 shrink-0 rounded-xl md:hidden hover:bg-white/10"
             onClick={() => onMobileMenuClick?.()}
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="min-w-0 truncate">
-            <p className="truncate text-sm font-semibold tracking-tight">{t("appName")}</p>
-            <span className="hidden text-xs text-muted-foreground sm:inline">{t("dashboard")}</span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold tracking-tight bg-gradient-to-r from-sky-500 to-blue-500 bg-clip-text text-transparent sm:text-base">{t("appName")}</p>
           </div>
           {eventsLoading ? (
-            <span className="ml-2 hidden text-[11px] text-muted-foreground sm:inline">{t("sync")}</span>
+            <div className="ml-2 flex items-center gap-1.5 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground animate-pulse">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {t("sync")}
+            </div>
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-2xl"
+            className="h-10 w-10 rounded-xl hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all hover:scale-105"
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
+              <Sun className="h-5 w-5" />
             ) : (
-              <Moon className="h-4 w-4" />
+              <Moon className="h-5 w-5" />
             )}
           </Button>
+          
           <Select
             value={(() => {
               const l = i18n.language?.split("-")[0];
@@ -133,47 +136,48 @@ export default function Topbar({ onMobileMenuClick }) {
               if (typeof localStorage !== "undefined") localStorage.setItem("lang", v);
             }}
           >
-            <SelectTrigger className="h-9 w-[70px] rounded-2xl gap-1 sm:w-[90px]">
+            <SelectTrigger className="h-10 w-[70px] rounded-xl border-white/10 bg-white/5 hover:bg-white/10 transition-colors gap-1 sm:w-[80px]">
               <Languages className="h-4 w-4 shrink-0 opacity-70" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-white/10 backdrop-blur-xl">
               {LANG_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
+                <SelectItem key={o.value} value={o.value} className="rounded-lg">
                   {o.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-2xl sm:hidden"
+            className="h-10 w-10 rounded-xl sm:hidden hover:bg-white/10"
             onClick={playNotificationSound}
             aria-label={t("enableSound")}
           >
-            <Volume2 className="h-4 w-4" />
+            <Volume2 className="h-5 w-5" />
           </Button>
           <Button
             onClick={playNotificationSound}
-            variant="outline"
-            className="hidden h-9 rounded-2xl sm:flex"
+            variant="ghost"
+            className="hidden h-10 rounded-xl sm:flex hover:bg-white/10 text-muted-foreground hover:text-foreground"
           >
             {t("enableSound")}
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 pl-3 border-l border-white/10">
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                className="relative h-10 w-10 rounded-2xl"
+                variant="ghost"
+                className="relative h-10 w-10 rounded-xl hover:bg-white/10 transition-all hover:scale-105"
               >
                 <Bell className="h-5 w-5" />
                 {unread > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                  <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-r from-sky-600 to-blue-600 px-1 text-[10px] font-bold text-white shadow-lg ring-2 ring-background">
                     {unread > 99 ? "99+" : unread}
                   </span>
                 )}

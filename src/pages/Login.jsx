@@ -1,152 +1,191 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { clearAuthError, login } from "../features/auth/authSlice";
-import { Navigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { useDispatch } from "react-redux";
+import { login } from "../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useTheme } from "../hooks/useTheme";
-import { Moon, Sun } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { Loader2, LogIn, Sparkles, User, Lock } from "lucide-react";
 
-const LANG_OPTIONS = [
-  { value: "en", label: "EN" },
-  { value: "ru", label: "RU" },
-  { value: "tj", label: "TJ" },
-];
+import LanguageSelector from "../components/ui/LanguageSelector";
+import ThemeToggle from "../components/ui/ThemeToggle";
+import { FadeIn, Scale } from "@/components/ui/motion";
 
 export default function Login() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { t, i18n } = useTranslation();
-  const { theme, toggleTheme } = useTheme();
-  const token = useSelector((s) => s.auth.token);
-  const error = useSelector((s) => s.auth.error);
+  const navigate = useNavigate();
 
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    dispatch(clearAuthError());
-  }, [dispatch]);
-
-  if (token) return <Navigate to="/dashboard" replace />;
-
-  const submit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(login(form));
+    setLoading(true);
+
+    // Simulation
+    setTimeout(() => {
+      // Hardcoded check
+      if (email === "admin@softclub.tj" && password === "123456") {
+        dispatch(login({ name: "Admin User", email }));
+        toast.success(t("loginSuccess"));
+        navigate("/dashboard/home");
+      } else {
+        toast.error(t("loginError"));
+        setLoading(false);
+      }
+    }, 1000);
   };
 
-  const lang = ["en", "ru", "tj"].includes(i18n.language) ? i18n.language : i18n.language?.split("-")[0] || "en";
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 rounded-2xl"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {theme === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </Button>
-        <Select
-          value={lang}
-          onValueChange={(v) => {
-            i18n.changeLanguage(v);
-            if (typeof localStorage !== "undefined") localStorage.setItem("lang", v);
-          }}
-        >
-          <SelectTrigger className="w-[90px] rounded-2xl">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LANG_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground transition-colors duration-500">
+      {/* Background blobs */}
+      <div className="absolute top-[-20%] left-[-10%] h-[800px] w-[800px] rounded-full bg-sky-600/20 blur-[130px] animate-pulse" />
+      <div className="absolute bottom-[-20%] right-[-10%] h-[800px] w-[800px] rounded-full bg-blue-600/20 blur-[130px] animate-pulse delay-1000" />
+      
+      {/* Top right controls */}
+      <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
+        <ThemeToggle />
+        <LanguageSelector />
       </div>
-      <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center p-4">
-        <div className="grid w-full gap-6 md:grid-cols-2">
-          <div className="hidden md:flex flex-col justify-center rounded-3xl border bg-muted/20 p-10">
-            <h1 className="text-3xl font-semibold tracking-tight">{t("appName")}</h1>
-            <p className="mt-3 text-sm text-muted-foreground">
-              {t("loginSubtitle")}
+
+      <div className="relative grid min-h-screen lg:grid-cols-2">
+        {/* Left side - Info */}
+        <div className="hidden lg:flex flex-col justify-center p-12 relative">
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
+          <FadeIn className="relative z-10 max-w-lg mx-auto space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-2 backdrop-blur-md border border-white/10">
+              <Sparkles className="h-5 w-5 text-sky-400" />
+              <span className="font-medium text-sky-100">Events Softclub </span>
+              <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-bold text-white tracking-widest">ULTRA</span>
+            </div>
+            
+            <h1 className="text-5xl font-bold tracking-tight text-white leading-tight">
+              {t("manageEvents")} <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-400">
+                {t("effortlessly")}
+              </span>
+            </h1>
+            
+            <p className="text-lg text-white/70 leading-relaxed">
+              Experience the next generation of event management. streamlined workflows,
+              beautiful analytics, and a powerful dashboard designed for pros.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-2">
-              <Badge variant="secondary">shadcn/ui</Badge>
-              <Badge variant="secondary">Redux Toolkit</Badge>
-              <Badge variant="secondary">MockAPI CRUD</Badge>
-              <Badge variant="secondary">{t("responsive")}</Badge>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+                <div className="text-2xl font-bold text-white mb-1">10k+</div>
+                <div className="text-sm text-white/60">Active Events</div>
+              </div>
+               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+                <div className="text-2xl font-bold text-white mb-1">99.9%</div>
+                <div className="text-sm text-white/60">Uptime</div>
+              </div>
             </div>
+          </FadeIn>
+        </div>
 
-            <div className="mt-10 rounded-2xl border bg-background p-4">
-              <p className="text-sm font-medium">{t("demoAccount")}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("username")}: <span className="font-medium">adminEventSoftclub</span>
-                <br />
-                {t("password")}: <span className="font-medium">123456</span>
-              </p>
-            </div>
-          </div>
-
-          <Card className="rounded-3xl">
-            <CardHeader>
-              <CardTitle>{t("login")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={submit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t("username")}</Label>
-                  <Input
-                    value={form.username}
-                    onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
-                    placeholder="adminEventSoftclub"
-                    className="h-11 rounded-2xl"
-                  />
+        {/* Right side - Login Form */}
+        <div className="flex items-center justify-center p-6 lg:p-12">
+          <Scale className="w-full max-w-md">
+            <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl">
+              <CardHeader className="space-y-1 text-center pb-8">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-500 shadow-lg shadow-sky-500/25">
+                  <LogIn className="h-7 w-7 text-white" />
                 </div>
+                <CardTitle className="text-2xl font-bold tracking-tight">
+                  {t("loginTitle")}
+                </CardTitle>
+                <CardDescription className="text-base">
+                  {t("loginSubtitle")}
+                </CardDescription>
+              </CardHeader>
 
-                <div className="space-y-2">
-                  <Label>{t("password")}</Label>
-                  <Input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                    placeholder="123456"
-                    className="h-11 rounded-2xl"
-                  />
-                </div>
-
-                {error && (
-                  <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                    {error}
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t("email")}</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="admin@softclub.tj"
+                        className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 focus:border-sky-500/50 transition-colors"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
-                )}
 
-                <Button className="h-11 w-full rounded-2xl">{t("signIn")}</Button>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">{t("password")}</Label>
+                      <a href="#" className="text-xs font-medium text-primary hover:underline">
+                        Forgot password?
+                      </a>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••"
+                        className="pl-10 h-11 rounded-xl bg-white/5 border-white/10 focus:border-sky-500/50 transition-colors"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
 
-                <p className="text-center text-xs text-muted-foreground">
-                  {t("noBackend")}
-                </p>
-              </form>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="remember" className="rounded-md border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                    <label
+                      htmlFor="remember"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Remember me
+                    </label>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white font-medium shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      t("loginButton")
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+
+              <CardFooter className="flex flex-col space-y-4 border-t border-white/5 pt-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-xl bg-white/5 p-4 border border-white/5 w-full">
+                  <p className="font-medium text-foreground mb-1">Demo Credentials:</p>
+                  <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">admin@softclub.tj</code>
+                  <span className="mx-2">•</span>
+                  <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">123456</code>
+                </div>
+              </CardFooter>
+            </Card>
+          </Scale>
         </div>
       </div>
     </div>
