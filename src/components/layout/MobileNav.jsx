@@ -1,7 +1,8 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, LayoutDashboard } from "lucide-react";
+import { useSelector } from "react-redux";
+import { CalendarDays, LayoutDashboard, Image, Video, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import logo from "/SoftClub-logo.svg";
@@ -26,6 +27,8 @@ const Item = ({ to, icon: IconComponent, label, onClick }) => (
 
 export default function MobileNav({ onLinkClick }) {
   const { t } = useTranslation();
+  const user = useSelector((s) => s.auth.user);
+  const isAdmin = user?.role === "ADMIN";
 
   return (
     <div className="flex h-full flex-col gap-6 p-5">
@@ -34,18 +37,16 @@ export default function MobileNav({ onLinkClick }) {
       </div>
       <Separator />
       <nav className="flex flex-col gap-2">
-        <Item
-          to="/dashboard/home"
-          icon={LayoutDashboard}
-          label={t("dashboard")}
-          onClick={onLinkClick}
-        />
-        <Item
-          to="/dashboard/events"
-          icon={CalendarDays}
-          label={t("events")}
-          onClick={onLinkClick}
-        />
+        <Item to="/dashboard/home" icon={LayoutDashboard} label={t("dashboard")} onClick={onLinkClick} />
+        <Item to="/dashboard/events" icon={CalendarDays} label={t("events")} onClick={onLinkClick} />
+        <Separator className="my-2" />
+        <Item to="/dashboard/photos" icon={Image} label={t("photos") || "Photos"} onClick={onLinkClick} />
+        <Item to="/dashboard/videos" icon={Video} label={t("videos") || "Videos"} onClick={onLinkClick} />
+        <Separator className="my-2" />
+        {isAdmin && (
+          <Item to="/dashboard/users" icon={Users} label={t("users") || "Users"} onClick={onLinkClick} />
+        )}
+        <Item to="/dashboard/profile" icon={User} label={t("profile") || "Profile"} onClick={onLinkClick} />
       </nav>
     </div>
   );

@@ -380,46 +380,86 @@ export default function EventsPage() {
         </div>
 
         <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-sm">
-          <CardHeader className="gap-4 border-b border-white/5 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="text-xl">{t("allEvents")}</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
+          <CardHeader className="space-y-4 border-b border-white/5 p-6">
+            {/* Top row: title + count */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl">{t("allEvents")}</CardTitle>
+                <Badge variant="secondary" className="rounded-lg px-2.5 py-1 text-xs font-semibold gap-1">
+                  <Sparkles className="h-3 w-3" /> {filtered.length}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
                 <Trans i18nKey="showingItems" values={{ count: filtered.length }} components={{ 1: <span className="font-medium text-foreground" /> }} />
               </p>
             </div>
 
-            {/* Filters */}
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t("searchPlaceholder")}
-                className="h-10 rounded-xl bg-white/5 border-white/10 focus:border-primary/50 transition-colors sm:w-64"
-              />
+            {/* Filter bar */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              {/* Search */}
+              <div className="relative flex-1 max-w-sm">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" /></svg>
+                </span>
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("searchPlaceholder")}
+                  className="h-10 pl-9 rounded-xl bg-white/5 border-white/10 focus:border-sky-500/50 transition-colors"
+                />
+              </div>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-10 rounded-xl bg-white/5 border-white/10 sm:w-40">
-                  <SelectValue placeholder={t("status")} />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
-                  <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="active">{t("active")}</SelectItem>
-                  <SelectItem value="inactive">{t("inactive")}</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="h-10 rounded-xl bg-white/5 border-white/10 sm:w-40">
-                  <SelectValue placeholder={t("month")} />
-                </SelectTrigger>
-                <SelectContent className="h-64 rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
-                  {MONTH_KEYS.map((key, i) => (
-                    <SelectItem key={MONTH_VALUES[i]} value={MONTH_VALUES[i]}>
-                      {t(key)}
-                    </SelectItem>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Status pills */}
+                <div className="flex rounded-xl bg-white/5 border border-white/10 p-0.5">
+                  {[
+                    { value: "all", label: t("all") },
+                    { value: "active", label: t("active"), dot: "bg-emerald-500" },
+                    { value: "inactive", label: t("inactive"), dot: "bg-zinc-500" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setStatusFilter(opt.value)}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                        statusFilter === opt.value
+                          ? "bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md"
+                          : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      }`}
+                    >
+                      {opt.dot && <span className={`h-1.5 w-1.5 rounded-full ${opt.dot}`} />}
+                      {opt.label}
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+
+                {/* Month select */}
+                <Select value={monthFilter} onValueChange={setMonthFilter}>
+                  <SelectTrigger className="h-9 rounded-xl bg-white/5 border-white/10 w-36 text-xs">
+                    <SelectValue placeholder={t("month")} />
+                  </SelectTrigger>
+                  <SelectContent className="h-64 rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
+                    {MONTH_KEYS.map((key, i) => (
+                      <SelectItem key={MONTH_VALUES[i]} value={MONTH_VALUES[i]}>
+                        {t(key)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Clear filters */}
+                {(q || statusFilter !== "all" || monthFilter !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 gap-1.5"
+                    onClick={() => { setQ(""); setStatusFilter("all"); setMonthFilter("all"); }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    {t("clearFilters") || "Clear filters"}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
 
@@ -437,7 +477,7 @@ export default function EventsPage() {
                       key={e.id}
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-50px" }}
+                      viewport={{ once: true, margin: "-50px" }} 
                       transition={{ duration: 0.5, delay: idx * 0.1 }}
                     >
                       <Card className="group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-white/20">
@@ -573,7 +613,7 @@ export default function EventsPage() {
         {/* DIALOG: wide, inputs left, preview right */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild />
-          <DialogContent className="max-h-[95vh] w-full max-w-6xl overflow-y-auto rounded-3xl border-white/10 bg-background/80 backdrop-blur-2xl p-0 gap-0">
+          <DialogContent className="max-h-[95vh] w-full max-w-6xl h-full lg:min-w-6xl sm:max-w-[95vw] rounded-3xl border-white/10 bg-background/80 backdrop-blur-2xl p-0 gap-0">
              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-background/50 px-6 py-4 backdrop-blur-xl">
                 <DialogTitle className="text-xl font-bold">
                   {mode === "create" ? t("createEvent") : t("editEvent")}

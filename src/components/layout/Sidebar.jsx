@@ -1,10 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, LayoutDashboard } from "lucide-react";
+import { useSelector } from "react-redux";
+import { CalendarDays, LayoutDashboard, Image, Video, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import logo from "/SoftClub-logo.svg";
+
 // eslint-disable-next-line
 const Item = ({ to, icon: IconComponent, label }) => (
   <NavLink
@@ -32,6 +34,9 @@ const Item = ({ to, icon: IconComponent, label }) => (
 
 export default function Sidebar() {
   const { t } = useTranslation();
+  const user = useSelector((s) => s.auth.user);
+  const isAdmin = user?.role === "ADMIN";
+
   return (
     <aside className="hidden md:flex md:w-72 md:flex-col h-screen md:gap-6 md:border-r md:border-white/5 md:bg-background/80 md:backdrop-blur-xl md:p-5 shadow-2xl z-50">
       <div className="flex items-center justify-between px-2">
@@ -45,14 +50,51 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-2">
         <Item to="/dashboard/home" icon={LayoutDashboard} label={t("dashboard")} />
         <Item to="/dashboard/events" icon={CalendarDays} label={t("events")} />
+        
+        {/* Content sections */}
+        <Separator className="bg-white/10 my-2" />
+        <p className="px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">
+          {t("content") || "Content"}
+        </p>
+        <Item to="/dashboard/photos" icon={Image} label={t("photos") || "Photos"} />
+        <Item to="/dashboard/videos" icon={Video} label={t("videos") || "Videos"} />
+
+        {/* Management section */}
+        <Separator className="bg-white/10 my-2" />
+        <p className="px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">
+          {t("management") || "Management"}
+        </p>
+        {isAdmin && (
+          <Item to="/dashboard/users" icon={Users} label={t("users") || "Users"} />
+        )}
+        <Item to="/dashboard/profile" icon={User} label={t("profile") || "Profile"} />
       </nav>
 
-      <div className="mt-auto rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 p-4 border border-white/5">
-        <p className="text-xs text-muted-foreground text-center">
-          &copy; {new Date().getFullYear()} SoftClub
-        </p>
-      </div>
+      {/* User info */}
+      {user && (
+        <div className="mt-auto space-y-3">
+          <div className="rounded-xl bg-white/5 p-3 border border-white/5">
+            <p className="text-sm font-medium truncate">{user.name} {user.surname || ""}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <span className={cn(
+              "mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+              user.role === "ADMIN" 
+                ? "bg-sky-500/20 text-sky-400" 
+                : "bg-emerald-500/20 text-emerald-400"
+            )}>
+              {user.role}
+            </span>
+          </div>
+          <div className="rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 p-4 border border-white/5">
+            <p className="text-xs text-muted-foreground text-center">
+              &copy; {new Date().getFullYear()} SoftClub
+            </p>
+            <p className="text-[10px] text-muted-foreground/50 text-center mt-1">
+              Created by Azizov MuhammadUmar
+            </p>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
-

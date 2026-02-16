@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
-import { login } from "../features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, clearAuthError } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -26,31 +26,26 @@ export default function Login() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((s) => s.auth);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Simulation
-    setTimeout(() => {
-      // Hardcoded check
-      if (email === "admin@softclub.tj" && password === "123456") {
-        dispatch(login({ name: "Admin User", email }));
-        toast.success(t("loginSuccess"));
-        navigate("/dashboard/home");
-      } else {
-        toast.error(t("loginError"));
-        setLoading(false);
-      }
-    }, 1000);
+    dispatch(clearAuthError());
+    
+    try {
+      const result = await dispatch(loginUser({ email, password })).unwrap();
+      toast.success(t("loginSuccess") || "Login successful!");
+      navigate("/dashboard/home");
+    } catch (err) {
+      toast.error(err || t("loginError") || "Login failed");
+    }
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background text-foreground transition-colors duration-500">
+    <div className="relative min-h-screen max-h-screen w-full overflow-hidden bg-background text-foreground transition-colors duration-500">
       {/* Background blobs */}
       <div className="absolute top-[-20%] left-[-10%] h-[800px] w-[800px] rounded-full bg-sky-600/20 blur-[130px] animate-pulse" />
       <div className="absolute bottom-[-20%] right-[-10%] h-[800px] w-[800px] rounded-full bg-blue-600/20 blur-[130px] animate-pulse delay-1000" />
@@ -80,7 +75,7 @@ export default function Login() {
             </h1>
             
             <p className="text-lg text-white/70 leading-relaxed">
-              Experience the next generation of event management. streamlined workflows,
+              Experience the next generation of event management. Streamlined workflows,
               beautiful analytics, and a powerful dashboard designed for pros.
             </p>
 
@@ -134,9 +129,6 @@ export default function Login() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">{t("password")}</Label>
-                      <a href="#" className="text-xs font-medium text-primary hover:underline">
-                        Forgot password?
-                      </a>
                     </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
@@ -162,6 +154,12 @@ export default function Login() {
                     </label>
                   </div>
 
+                  {error && (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 text-center">
+                      {error}
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     className="w-full h-11 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white font-medium shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all"
@@ -177,12 +175,24 @@ export default function Login() {
               </CardContent>
 
               <CardFooter className="flex flex-col space-y-4 border-t border-white/5 pt-6 text-center text-sm text-muted-foreground">
-                <div className="rounded-xl bg-white/5 p-4 border border-white/5 w-full">
+                <div className="rounded-xl bg-white/5 p-4 border border-white/5 w-full space-y-2">
                   <p className="font-medium text-foreground mb-1">Demo Credentials:</p>
-                  <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">admin@softclub.tj</code>
-                  <span className="mx-2">•</span>
-                  <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">123456</code>
+                  <div>
+                    <span className="text-xs text-muted-foreground mr-1">Admin:</span>
+                    <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">admin@softclub.tj</code>
+                    <span className="mx-1">•</span>
+                    <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">Admin123!</code>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground mr-1">Mentor:</span>
+                    <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">mentor@softclub.tj</code>
+                    <span className="mx-1">•</span>
+                    <code className="bg-black/20 px-2 py-0.5 rounded text-xs select-all">Mentor123!</code>
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground/60">
+                  Created by <span className="font-semibold text-muted-foreground">Azizov MuhammadUmar</span>
+                </p>
               </CardFooter>
             </Card>
           </Scale>

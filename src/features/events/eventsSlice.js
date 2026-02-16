@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { api, getErrorMessage } from "../../api/http";
 
-export const fetchEvents = createAsyncThunk("events/fetchEvents", async (_, thunkApi) => {
+export const fetchEvents = createAsyncThunk("events/fetchEvents", async (params = {}, thunkApi) => {
   try {
-    const res = await api.get("/events");
+    const res = await api.get("/events", { params });
     return res.data;
   } catch (err) {
     return thunkApi.rejectWithValue(getErrorMessage(err));
@@ -39,6 +39,9 @@ export const deleteEvent = createAsyncThunk("events/deleteEvent", async (id, thu
 
 const initialState = {
   items: [],
+  total: 0,
+  page: 1,
+  totalPages: 1,
   loading: false,
   saving: false,
   error: null,
@@ -61,7 +64,16 @@ const eventsSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        // Support both paginated { data, total, page } and raw array responses
+        if (Array.isArray(action.payload)) {
+          state.items = action.payload;
+          state.total = action.payload.length;
+        } else {
+          state.items = action.payload.data || [];
+          state.total = action.payload.total || 0;
+          state.page = action.payload.page || 1;
+          state.totalPages = action.payload.totalPages || 1;
+        }
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
@@ -76,6 +88,7 @@ const eventsSlice = createSlice({
       .addCase(createEvent.fulfilled, (state, action) => {
         state.saving = false;
         state.items = [action.payload, ...state.items];
+        state.total += 1;
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.saving = false;
@@ -106,6 +119,7 @@ const eventsSlice = createSlice({
         state.saving = false;
         const id = action.payload;
         state.items = state.items.filter((x) => String(x.id) !== String(id));
+        state.total = Math.max(0, state.total - 1);
       })
       .addCase(deleteEvent.rejected, (state, action) => {
         state.saving = false;

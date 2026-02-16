@@ -16,9 +16,9 @@ export function toTimeInputValue(iso) {
 }
 
 export function fromDateTimeInputs(dateStr, timeStr) {
-  // Keep it simple: store ISO strings
-  const dateIso = dateStr ? new Date(`${dateStr}T00:00:00.000Z`).toISOString() : new Date().toISOString();
-  const timeIso = timeStr ? new Date(`1970-01-01T${timeStr}:00.000Z`).toISOString() : new Date().toISOString();
+  // Use local timezone to avoid +5 GMT shift bugs
+  const dateIso = dateStr ? `${dateStr}T00:00:00` : new Date().toISOString();
+  const timeIso = timeStr || "";
   return { dateIso, timeIso };
 }
 
