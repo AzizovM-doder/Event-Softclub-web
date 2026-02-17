@@ -8,7 +8,9 @@ import {
   deleteEvent,
   fetchEvents,
   updateEvent,
+  updateEventStatus,
 } from "../features/events/eventsSlice";
+import { fetchUsers } from "../features/users/usersSlice";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +56,11 @@ import {
   Sparkles,
   Upload,
   Link2,
+  Calendar,
+  Clock,
+  ArrowUpDown,
+  Tag,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -139,11 +146,24 @@ const MONTH_KEYS = [
   "july", "august", "september", "october", "november", "december",
 ];
 const MONTH_VALUES = ["all", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function monthFromEvent(e) {
   const d = pickDateInputValue(e?.date); // "YYYY-MM-DD"
   if (!d) return "";
   return d.slice(5, 7); // "MM"
+}
+
+function parseEventDate(dateStr) {
+  const d = pickDateInputValue(dateStr);
+  if (!d) return { day: "—", month: "" };
+  const parts = d.split("-");
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return {
+    day: String(parseInt(parts[2], 10)),
+    month: MONTH_SHORT[monthIdx] || "",
+    year: parts[0],
+  };
 }
 
 /* ---------------- UI bits ---------------- */
@@ -154,23 +174,23 @@ function CardsSkeleton() {
       {Array.from({ length: 9 }).map((_, i) => (
         <Card
           key={i}
-          className="rounded-3xl overflow-hidden border bg-background/60 backdrop-blur"
+          className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur flex flex-col"
         >
-          <Skeleton className="h-52 w-full" />
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-4 w-4/5" />
-                <Skeleton className="h-3 w-2/5" />
-              </div>
-              <Skeleton className="h-6 w-20 rounded-xl" />
-            </div>
-            <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full" />
+          <div className="p-4 space-y-3">
+            <Skeleton className="h-5 w-3/4" />
             <div className="flex gap-2">
-              <Skeleton className="h-9 w-24 rounded-2xl" />
-              <Skeleton className="h-9 w-24 rounded-2xl" />
+              <Skeleton className="h-5 w-20 rounded-md" />
+              <Skeleton className="h-5 w-16 rounded-md" />
             </div>
-          </CardContent>
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+            <div className="flex gap-2 pt-2 border-t border-white/5">
+              <Skeleton className="h-9 flex-1 rounded-xl" />
+              <Skeleton className="h-9 flex-1 rounded-xl" />
+              <Skeleton className="h-9 flex-1 rounded-xl" />
+            </div>
+          </div>
         </Card>
       ))}
     </div>
@@ -179,24 +199,44 @@ function CardsSkeleton() {
 
 /* ---------------- page ---------------- */
 
+const STATUS_STYLES = {
+  PENDING: { bg: "bg-amber-500/15 text-amber-400 border-amber-500/20", dot: "bg-amber-400 shadow-amber-400/50" },
+  COMPLETED: { bg: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20", dot: "bg-emerald-400 shadow-emerald-400/50" },
+  MISSED: { bg: "bg-red-500/15 text-red-400 border-red-500/20", dot: "bg-red-400 shadow-red-400/50" },
+};
+
+const STATUS_LABEL_KEYS = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+  MISSED: "missed",
+};
+
 const emptyForm = {
   title: "",
   date: "",
   time: "",
   location: "",
-  status: true,
+  status: "PENDING",
   coverImage: "",
   description: "",
+  category: "",
+  mentorId: null,
 };
 
 export default function EventsPage() {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.events);
+  const { user } = useSelector((s) => s.auth);
+  const { items: users } = useSelector((s) => s.users);
+  const isAdmin = user?.role === "ADMIN";
   const thisMonth = new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : new Date().getMonth() + 1;
   const [q, setQ] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all|active|inactive
+  const [statusFilter, setStatusFilter] = useState("all"); // all|PENDING|COMPLETED|MISSED
   const [monthFilter, setMonthFilter] = useState(thisMonth); // all|01..12
+  const [mentorFilter, setMentorFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("create"); // create|edit
@@ -208,7 +248,15 @@ export default function EventsPage() {
 
   useEffect(() => {
     dispatch(fetchEvents());
+    dispatch(fetchUsers());
   }, [dispatch]);
+
+  // Derive unique categories from events
+  const categories = useMemo(() => {
+    const cats = new Set();
+    (items || []).forEach((e) => { if (e.category) cats.add(e.category); });
+    return [...cats].sort();
+  }, [items]);
 
   useEffect(() => {
     if (error) toast.error(error);
@@ -220,8 +268,7 @@ export default function EventsPage() {
 
     return (items || [])
       .filter((x) => {
-        if (statusFilter === "active") return x.status === true;
-        if (statusFilter === "inactive") return x.status === false;
+        if (statusFilter !== "all") return x.status === statusFilter;
         return true;
       })
       .filter((x) => {
@@ -229,19 +276,27 @@ export default function EventsPage() {
         return monthFromEvent(x) === monthFilter;
       })
       .filter((x) => {
+        if (mentorFilter === "all") return true;
+        return x.mentorId === mentorFilter;
+      })
+      .filter((x) => {
+        if (categoryFilter === "all") return true;
+        return x.category && x.category.toLowerCase() === categoryFilter.toLowerCase();
+      })
+      .filter((x) => {
         if (!s) return true;
         const hay = `${x.title} ${x.description} ${x.location}`.toLowerCase();
         return hay.includes(s);
       })
       .sort((a, b) => {
-        // stable sort without timezone shift
         const ad = pickDateInputValue(a?.date);
         const at = pickTimeInputValue(a?.time) || "00:00";
         const bd = pickDateInputValue(b?.date);
         const bt = pickTimeInputValue(b?.time) || "00:00";
-        return `${bd}T${bt}`.localeCompare(`${ad}T${at}`);
+        const cmp = `${ad}T${at}`.localeCompare(`${bd}T${bt}`);
+        return sortOrder === "asc" ? cmp : -cmp;
       });
-  }, [items, q, statusFilter, monthFilter]);
+  }, [items, q, statusFilter, monthFilter, mentorFilter, categoryFilter, sortOrder]);
 
   const openCreate = () => {
     setMode("create");
@@ -267,9 +322,11 @@ export default function EventsPage() {
       date: pickDateInputValue(e.date),
       time: pickTimeInputValue(e.time),
       location: e.location || "",
-      status: e.status === true,
+      status: e.status || "PENDING",
       coverImage: img,
       description: e.description || "",
+      category: e.category || "",
+      mentorId: e.mentorId || null,
     });
 
     setOpen(true);
@@ -285,9 +342,11 @@ export default function EventsPage() {
       date: dateIso,
       time: timeIso,
       location: (form.location || "").trim(),
-      status: !!form.status,
+      status: form.status || "PENDING",
       coverImage: (form.coverImage || "").trim(),
       description: (form.description || "").trim(),
+      category: (form.category || "").trim(),
+      mentorId: form.mentorId || null,
     };
 
     if (!payload.title) return toast.error(t("titleRequired"));
@@ -414,8 +473,9 @@ export default function EventsPage() {
                 <div className="flex rounded-xl bg-white/5 border border-white/10 p-0.5">
                   {[
                     { value: "all", label: t("all") },
-                    { value: "active", label: t("active"), dot: "bg-emerald-500" },
-                    { value: "inactive", label: t("inactive"), dot: "bg-zinc-500" },
+                    { value: "PENDING", label: t("pending"), dot: "bg-amber-400" },
+                    { value: "COMPLETED", label: t("completed"), dot: "bg-emerald-400" },
+                    { value: "MISSED", label: t("missed"), dot: "bg-red-400" },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -447,13 +507,56 @@ export default function EventsPage() {
                   </SelectContent>
                 </Select>
 
+                {/* Category select */}
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="h-9 rounded-xl bg-white/5 border-white/10 w-40 text-xs">
+                    <SelectValue placeholder={t("allCategories")} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
+                    <SelectItem value="all">{t("allCategories")}</SelectItem>
+                    {categories.length > 0 ? categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    )) : (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">{t("noCategoriesYet")}</div>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {/* Mentor select */}
+                <Select value={mentorFilter} onValueChange={setMentorFilter}>
+                  <SelectTrigger className="h-9 rounded-xl bg-white/5 border-white/10 w-40 text-xs">
+                    <SelectValue placeholder={t("allMentors")} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
+                    <SelectItem value="all">{t("allMentors")}</SelectItem>
+                    {(users || []).filter((u) => u.role === "MENTOR" || u.role === "ADMIN").length > 0 ? (
+                      (users || []).filter((u) => u.role === "MENTOR" || u.role === "ADMIN").map((u) => (
+                        <SelectItem key={u.id} value={u.id}>{u.name || u.email}</SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">{t("noMentorsYet")}</div>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {/* Sort direction */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-xl bg-white/5 border-white/10 text-xs gap-1.5 hover:bg-white/10"
+                  onClick={() => setSortOrder((p) => (p === "asc" ? "desc" : "asc"))}
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  {sortOrder === "asc" ? t("ascending") : t("descending")}
+                </Button>
+
                 {/* Clear filters */}
-                {(q || statusFilter !== "all" || monthFilter !== "all") && (
+                {(q || statusFilter !== "all" || monthFilter !== "all" || mentorFilter !== "all" || categoryFilter !== "all") && (
                   <Button
                     variant="ghost"
                     size="sm"
                     className="h-9 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 gap-1.5"
-                    onClick={() => { setQ(""); setStatusFilter("all"); setMonthFilter("all"); }}
+                    onClick={() => { setQ(""); setStatusFilter("all"); setMonthFilter("all"); setMentorFilter("all"); setCategoryFilter("all"); }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     {t("clearFilters") || "Clear filters"}
@@ -463,133 +566,192 @@ export default function EventsPage() {
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="pt-0">
             {loading ? (
               <CardsSkeleton />
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((e, idx) => {
                   const dateStr = pickDateInputValue(e.date);
                   const timeStr = pickTimeInputValue(e.time);
+                  const parsed = parseEventDate(e.date);
+                  const isFeatured = idx === 0;
 
                   return (
                     <motion.div
                       key={e.id}
-                      initial={{ opacity: 0, y: 30 }}
+                      initial={{ opacity: 0, y: 24 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-50px" }} 
-                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      viewport={{ once: true, margin: "-40px" }}
+                      transition={{ duration: 0.45, delay: Math.min(idx * 0.06, 0.5) }}
+                      className={isFeatured ? "sm:col-span-2 sm:row-span-2" : ""}
                     >
-                      <Card className="group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-white/20">
-                        {/* cover */}
-                        <div className="relative h-56 w-full overflow-hidden bg-muted/20">
+                      <Card className="group relative h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/[0.06] hover:border-white/[0.15] flex flex-col">
+                        {/* Cover image / gradient top strip */}
+                        <div className={`relative w-full overflow-hidden ${isFeatured ? "h-56 sm:h-72" : "h-40"}`}>
                           {e.coverImage && e.coverImage !== "null" ? (
                             <img
                               src={e.coverImage}
                               alt="cover"
-                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                           ) : (
-                            <div className="grid h-full w-full place-items-center text-sm text-muted-foreground bg-muted/10">
-                              <Sparkles className="h-10 w-10 opacity-20" />
-                            </div>
+                            <div className="h-full w-full bg-gradient-to-br from-sky-600/20 via-blue-600/10 to-transparent" />
                           )}
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-80" />
-                          
-                          <div className="absolute left-3 top-3">
-                            <Badge
-                              className={`rounded-xl shadow-lg backdrop-blur-md ${e.status ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" : "bg-zinc-500/20 text-zinc-500 border-zinc-500/30"}`}
-                              variant="outline"
-                            >
-                              {e.status ? t("active") : t("inactive")}
-                            </Badge>
+                          {/* Date badge – floating on the image */}
+                          <div className="absolute left-4 bottom-3 flex items-end gap-3">
+                            <div className={`flex flex-col items-center justify-center rounded-xl bg-background/80 backdrop-blur-md border border-white/10 shadow-lg ${isFeatured ? "px-4 py-2.5 min-w-[4rem]" : "px-3 py-1.5 min-w-[3.2rem]"}`}>
+                              <span className={`font-bold leading-none text-foreground ${isFeatured ? "text-2xl" : "text-lg"}`}>{parsed.day}</span>
+                              <span className={`font-semibold uppercase tracking-wider text-sky-400 mt-0.5 ${isFeatured ? "text-xs" : "text-[10px]"}`}>{parsed.month}</span>
+                            </div>
+                            <div>
+                              <h3 className={`font-bold leading-tight text-foreground drop-shadow-sm ${isFeatured ? "text-lg sm:text-xl line-clamp-2" : "text-base line-clamp-1"}`}>
+                                {isFeatured ? e.title : truncate(e.title, 45)}
+                              </h3>
+                            </div>
                           </div>
 
-                          <div className="absolute right-3 top-3 flex gap-2">
-                             <Button
-                              type="button"
-                              size="icon"
-                              variant="secondary"
-                              className="h-9 w-9 rounded-xl bg-black/40 text-white backdrop-blur hover:bg-black/60 border-0"
-                              onClick={() => openGoogleMaps(e.location)}
-                              disabled={!String(e.location || "").trim()}
-                              title={t("map")}
+                          {/* Status badge */}
+                          <div className="absolute right-3 top-3">
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-semibold backdrop-blur-md shadow-sm border ${
+                                (STATUS_STYLES[e.status] || STATUS_STYLES.PENDING).bg
+                              }`}
                             >
-                              <MapPin className="h-4 w-4" />
-                            </Button>
+                              <span className={`h-1.5 w-1.5 rounded-full shadow-sm ${(STATUS_STYLES[e.status] || STATUS_STYLES.PENDING).dot}`} />
+                              {t(STATUS_LABEL_KEYS[e.status] || "pending")}
+                            </span>
                           </div>
                         </div>
 
-                        <CardContent className="p-5 space-y-4">
-                          <div className="space-y-1.5">
-                            <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors line-clamp-1">
-                              {truncate(e.title, 50)}
-                            </h3>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-                               <div className="flex items-center gap-1.5 bg-secondary/30 px-2 py-1 rounded-md">
-                                  <span className="font-medium">{dateStr || "—"}</span>
-                                  {timeStr && <span>• {timeStr}</span>}
-                               </div>
-                            </div>
-                          </div>
-
-                          <div className="rounded-xl border border-white/5 bg-white/5 p-3 text-sm text-muted-foreground leading-relaxed line-clamp-3 min-h-[4.5rem]">
-                            {truncate(e.description, 120)}
-                          </div>
-
-                          <div className="pt-2 flex items-center gap-2">
-                                <Button
-                                 className="flex-1 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:scale-[1.02] transition-all border-0 h-10"
-                                 asChild
+                        {/* Card body */}
+                        <CardContent className={`flex-1 flex flex-col justify-between space-y-3 ${isFeatured ? "p-5" : "p-4 pt-3"}`}>
+                          {/* Meta row */}
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            {dateStr && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.06] px-2 py-0.5">
+                                <Calendar className="h-3 w-3 text-sky-400" />
+                                {dateStr}
+                              </span>
+                            )}
+                            {timeStr && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.06] px-2 py-0.5">
+                                <Clock className="h-3 w-3 text-sky-400" />
+                                {timeStr}
+                              </span>
+                            )}
+                            {e.location && (
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md bg-white/[0.06] px-2 py-0.5 hover:bg-white/[0.12] transition-colors cursor-pointer"
+                                onClick={() => openGoogleMaps(e.location)}
                               >
-                                <Link to={`/dashboard/events/${e.id}`}>
-                                  {t("info")} <Link2 className="ml-2 h-4 w-4" />
-                                </Link>
-                             </Button>
+                                <MapPin className="h-3 w-3 text-sky-400" />
+                                <span className="max-w-[10rem] truncate">{e.location}</span>
+                              </button>
+                            )}
+                          </div>
 
-                             <div className="flex gap-1">
+                          {/* Category + Mentor chips */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {e.category && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/10 text-sky-400 px-2 py-0.5 text-[10px] font-medium">
+                                <Tag className="h-2.5 w-2.5" />
+                                {e.category}
+                              </span>
+                            )}
+                            {e.mentor && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-violet-500/10 text-violet-400 px-2 py-0.5 text-[10px] font-medium">
+                                <User className="h-2.5 w-2.5" />
+                                {e.mentor.name || e.mentor.email}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Description */}
+                          <p className={`text-sm text-muted-foreground/80 leading-relaxed flex-1 ${isFeatured ? "line-clamp-5" : "line-clamp-2 min-h-[2.5rem]"}`}>
+                            {isFeatured ? (e.description || "") : truncate(e.description, 110)}
+                          </p>
+
+                          {/* Admin status control */}
+                          {isAdmin && (
+                            <Select
+                              value={e.status}
+                              onValueChange={async (v) => {
+                                if (v === e.status) return;
+                                try {
+                                  await dispatch(updateEventStatus({ id: e.id, status: v })).unwrap();
+                                  toast.success(t("statusUpdated"));
+                                } catch (err) { toast.error(String(err)); }
+                              }}
+                            >
+                              <SelectTrigger className={`h-7 w-full rounded-lg text-[11px] font-medium border ${(STATUS_STYLES[e.status] || STATUS_STYLES.PENDING).bg}`} disabled={saving}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-white/10 bg-background/95 backdrop-blur-xl">
+                                <SelectItem value="PENDING">
+                                  <span className="flex items-center gap-2 text-xs"><span className="h-2 w-2 rounded-full bg-amber-400" />{t("pending")}</span>
+                                </SelectItem>
+                                <SelectItem value="COMPLETED">
+                                  <span className="flex items-center gap-2 text-xs"><span className="h-2 w-2 rounded-full bg-emerald-400" />{t("completed")}</span>
+                                </SelectItem>
+                                <SelectItem value="MISSED">
+                                  <span className="flex items-center gap-2 text-xs"><span className="h-2 w-2 rounded-full bg-red-400" />{t("missed")}</span>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.06] mt-auto">
+                            <Button
+                              className="h-10 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-semibold shadow-md shadow-sky-600/15 hover:shadow-sky-600/30 hover:scale-[1.01] transition-all border-0"
+                              asChild
+                            >
+                              <Link to={`/dashboard/events/${e.id}`}>
+                                <ExternalLink className="mr-1.5 h-4 w-4" />
+                                {t("info")}
+                              </Link>
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              className="h-10 rounded-xl border-white/10 bg-white/[0.04] hover:bg-white/[0.1] hover:border-white/20 transition-all text-sm"
+                              onClick={() => openEdit(e)}
+                            >
+                              <Pencil className="mr-1.5 h-4 w-4" />
+                              {t("edit")}
+                            </Button>
+
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
                                 <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-10 w-10 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
-                                  onClick={() => openEdit(e)}
-                                  title={t("edit")}
+                                  variant="ghost"
+                                  className="h-10 rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all text-sm"
+                                  disabled={saving}
                                 >
-                                  <Pencil className="h-4 w-4" />
+                                  <Trash2 className="mr-1.5 h-4 w-4" />
+                                  {t("delete")}
                                 </Button>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-10 w-10 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                                      disabled={saving}
-                                      title={t("delete")}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="rounded-3xl border-white/10 bg-black/90 backdrop-blur-xl">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>{t("deleteEventTitle")}</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        {t("deleteEventDescription")}
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10">{t("cancel")}</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        className="rounded-xl bg-red-600 hover:bg-red-700"
-                                        onClick={() => remove(e.id)}
-                                      >
-                                        {t("delete")}
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                             </div>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="rounded-2xl border-white/10 bg-background/95 backdrop-blur-xl">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t("deleteEventTitle")}</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t("deleteEventDescription")}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10">{t("cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="rounded-xl bg-red-600 hover:bg-red-700"
+                                    onClick={() => remove(e.id)}
+                                  >
+                                    {t("delete")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </CardContent>
                       </Card>
@@ -599,10 +761,17 @@ export default function EventsPage() {
 
                 {filtered.length === 0 && (
                   <div className="py-20 text-center col-span-full">
-                    <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
-                        <Sparkles className="h-10 w-10 opacity-20" />
+                    <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted/20 mb-4">
+                      <Sparkles className="h-10 w-10 opacity-15" />
                     </div>
-                    <p className="text-muted-foreground text-lg">{t("noEventsFound")}</p>
+                    <p className="text-muted-foreground text-lg mb-4">{t("noEventsFound")}</p>
+                    <Button
+                      className="rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 transition-all border-0"
+                      onClick={openCreate}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("createFirstEvent")}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -643,17 +812,33 @@ export default function EventsPage() {
                   <div className="space-y-2">
                     <Label>{t("status")}</Label>
                     <Select
-                      value={form.status ? "active" : "inactive"}
+                      value={form.status || "PENDING"}
                       onValueChange={(v) =>
-                        setForm((p) => ({ ...p, status: v === "active" }))
+                        setForm((p) => ({ ...p, status: v }))
                       }
                     >
                       <SelectTrigger className="h-11 rounded-xl bg-white/5 border-white/10">
                         <SelectValue placeholder={t("status")} />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
-                        <SelectItem value="active">{t("active")}</SelectItem>
-                        <SelectItem value="inactive">{t("inactive")}</SelectItem>
+                        <SelectItem value="PENDING">
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-amber-400" />
+                            {t("pending")}
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="COMPLETED">
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                            {t("completed")}
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="MISSED">
+                          <span className="flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-red-400" />
+                            {t("missed")}
+                          </span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -692,6 +877,40 @@ export default function EventsPage() {
                       className="h-11 rounded-xl bg-white/5 border-white/10"
                       placeholder={t("locationPlaceholder")}
                     />
+                  </div>
+
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <Label>{t("category")}</Label>
+                    <Input
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, category: e.target.value }))
+                      }
+                      className="h-11 rounded-xl bg-white/5 border-white/10"
+                      placeholder={t("categoryPlaceholder")}
+                    />
+                  </div>
+
+                  {/* Mentor */}
+                  <div className="space-y-2">
+                    <Label>{t("selectMentor")}</Label>
+                    <Select
+                      value={form.mentorId || "__none__"}
+                      onValueChange={(v) =>
+                        setForm((p) => ({ ...p, mentorId: v === "__none__" ? null : v }))
+                      }
+                    >
+                      <SelectTrigger className="h-11 rounded-xl bg-white/5 border-white/10">
+                        <SelectValue placeholder={t("selectMentor")} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-white/10 bg-background/90 backdrop-blur-xl">
+                        <SelectItem value="__none__">{t("noMentorOption")}</SelectItem>
+                        {(users || []).filter((u) => u.role === "MENTOR" || u.role === "ADMIN").map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.name || u.email}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* cover */}

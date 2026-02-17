@@ -23,11 +23,12 @@ export default function App() {
         <Route path="/dashboard/events/:id" element={<EventInfoPage />} />
         <Route path="/dashboard/photos" element={<PhotosPage />} />
         <Route path="/dashboard/videos" element={<VideosPage />} />
+        <Route path="/dashboard/users" element={<UsersPage />} />
         <Route path="/dashboard/profile" element={<ProfilePage />} />
       </Route>
 
       <Route element={<AdminRoute />}>
-        <Route path="/dashboard/users" element={<UsersPage />} />
+        {/* Admin only routes if any */}
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard/home" replace />} />

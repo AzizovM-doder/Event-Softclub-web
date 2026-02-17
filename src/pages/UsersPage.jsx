@@ -107,6 +107,7 @@ export default function UsersPage() {
   const { t } = useTranslation();
   const { items, loading, saving, error } = useSelector((s) => s.users);
   const currentUser = useSelector((s) => s.auth.user);
+  const isAdmin = currentUser?.role === "ADMIN";
 
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -234,9 +235,11 @@ export default function UsersPage() {
               <Button variant="outline" className="h-10 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur" onClick={() => dispatch(fetchUsers())} disabled={loading}>
                 <RefreshCcw className="mr-2 h-4 w-4" /> {t("refresh")}
               </Button>
-              <Button className="h-10 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:scale-[1.02] transition-all border-0" onClick={openCreate}>
-                <Plus className="mr-2 h-4 w-4" /> {t("addMentor") || "Add Mentor"}
-              </Button>
+              {isAdmin && (
+                <Button className="h-10 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:scale-[1.02] transition-all border-0" onClick={openCreate}>
+                  <Plus className="mr-2 h-4 w-4" /> {t("addMentor") || "Add Mentor"}
+                </Button>
+              )}
             </div>
           </div>
         </FadeIn>
@@ -369,7 +372,7 @@ export default function UsersPage() {
                           )}
 
                           {/* Actions */}
-                          {currentUser?.id !== u.id && (
+                          {isAdmin && currentUser?.id !== u.id && (
                             <div className="flex gap-2 pt-1">
                               <Button variant="outline" size="sm" className="flex-1 h-9 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-xs" onClick={() => openEdit(u)}>
                                 <Pencil className="mr-1.5 h-3.5 w-3.5" /> {t("edit")}

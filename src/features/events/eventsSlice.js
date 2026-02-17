@@ -37,6 +37,15 @@ export const deleteEvent = createAsyncThunk("events/deleteEvent", async (id, thu
   }
 });
 
+export const updateEventStatus = createAsyncThunk("events/updateEventStatus", async ({ id, status }, thunkApi) => {
+  try {
+    const res = await api.patch(`/events/${id}/status`, { status });
+    return res.data;
+  } catch (err) {
+    return thunkApi.rejectWithValue(getErrorMessage(err));
+  }
+});
+
 const initialState = {
   items: [],
   total: 0,
@@ -124,6 +133,21 @@ const eventsSlice = createSlice({
       .addCase(deleteEvent.rejected, (state, action) => {
         state.saving = false;
         state.error = action.payload || "Failed to delete event";
+      })
+
+      // updateEventStatus
+      .addCase(updateEventStatus.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(updateEventStatus.fulfilled, (state, action) => {
+        state.saving = false;
+        const updated = action.payload;
+        state.items = state.items.map((x) => (String(x.id) === String(updated.id) ? updated : x));
+      })
+      .addCase(updateEventStatus.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload || "Failed to update event status";
       });
   },
 });

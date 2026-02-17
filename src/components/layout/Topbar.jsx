@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Bell, CheckCheck, Trash2, MapPin, LogOut, Languages, Moon, Sun, Menu, Volume2 } from "lucide-react";
+import { Bell, CheckCheck, Trash2, ExternalLink, LogOut, Languages, Moon, Sun, Menu, Volume2 } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 
 import { Button } from "@/components/ui/button";
@@ -31,15 +31,9 @@ import {
 } from "../../features/notifications/notificationsSlice";
 import { logout } from "../../features/auth/authSlice";
 import { fetchEvents } from "../../features/events/eventsSlice";
+import { useNavigate } from "react-router-dom";
 
-function openGoogleMaps(location) {
-  const loc = (location || "").trim();
-  if (!loc) return;
-  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    loc
-  )}`;
-  window.open(url, "_blank", "noopener,noreferrer");
-}
+
 
 const LANG_OPTIONS = [
   { value: "en", label: "EN" },
@@ -49,6 +43,7 @@ const LANG_OPTIONS = [
 
 export default function Topbar({ onMobileMenuClick }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
 
@@ -232,21 +227,20 @@ export default function Topbar({ onMobileMenuClick }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {latest.map((n) => (
-                      <button
+                      <DropdownMenuItem
                         key={n.id}
-                        onClick={() => {
+                        onSelect={() => {
                           dispatch(markRead(n.id));
-                          if (n.location) openGoogleMaps(n.location);
+                          if (n.eventId) navigate(`/dashboard/events/${n.eventId}`);
                         }}
                         className={[
-                          "w-full rounded-2xl border px-3 py-3 text-left transition",
-                          "hover:bg-muted/40",
+                          "w-full rounded-2xl border px-3 py-3 text-left cursor-pointer focus:bg-muted/40",
                           n.read ? "opacity-75" : "bg-background",
                         ].join(" ")}
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start justify-between gap-3 w-full">
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold">
                               {n.title || t("notification")}
@@ -256,10 +250,10 @@ export default function Topbar({ onMobileMenuClick }) {
                             </p>
 
                             <div className="mt-2 flex items-center gap-2">
-                              {n.location ? (
+                              {n.eventId ? (
                                 <Badge variant="secondary" className="rounded-xl">
-                                  <MapPin className="mr-1 h-3.5 w-3.5" />
-                                  {t("openMap")}
+                                  <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                                  {t("info")}
                                 </Badge>
                               ) : null}
 
@@ -273,7 +267,7 @@ export default function Topbar({ onMobileMenuClick }) {
                             </div>
                           </div>
 
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-[11px] text-muted-foreground shrink-0">
                             {n.createdAt
                               ? new Date(n.createdAt).toLocaleTimeString([], {
                                   hour: "2-digit",
@@ -282,7 +276,7 @@ export default function Topbar({ onMobileMenuClick }) {
                               : ""}
                           </span>
                         </div>
-                      </button>
+                      </DropdownMenuItem>
                     ))}
                   </div>
                 )}

@@ -28,7 +28,7 @@ const Item = ({ to, icon: IconComponent, label, onClick }) => (
 export default function MobileNav({ onLinkClick }) {
   const { t } = useTranslation();
   const user = useSelector((s) => s.auth.user);
-  const isAdmin = user?.role === "ADMIN";
+  const showUsers = user?.role === "ADMIN" || user?.role === "MENTOR";
 
   return (
     <div className="flex h-full flex-col gap-6 p-5">
@@ -43,7 +43,7 @@ export default function MobileNav({ onLinkClick }) {
         <Item to="/dashboard/photos" icon={Image} label={t("photos") || "Photos"} onClick={onLinkClick} />
         <Item to="/dashboard/videos" icon={Video} label={t("videos") || "Videos"} onClick={onLinkClick} />
         <Separator className="my-2" />
-        {isAdmin && (
+        {showUsers && (
           <Item to="/dashboard/users" icon={Users} label={t("users") || "Users"} onClick={onLinkClick} />
         )}
         <Item to="/dashboard/profile" icon={User} label={t("profile") || "Profile"} onClick={onLinkClick} />

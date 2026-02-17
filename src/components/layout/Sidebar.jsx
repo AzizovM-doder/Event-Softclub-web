@@ -35,7 +35,7 @@ const Item = ({ to, icon: IconComponent, label }) => (
 export default function Sidebar() {
   const { t } = useTranslation();
   const user = useSelector((s) => s.auth.user);
-  const isAdmin = user?.role === "ADMIN";
+  const showUsers = user?.role === "ADMIN" || user?.role === "MENTOR";
 
   return (
     <aside className="hidden md:flex md:w-72 md:flex-col h-screen md:gap-6 md:border-r md:border-white/5 md:bg-background/80 md:backdrop-blur-xl md:p-5 shadow-2xl z-50">
@@ -64,7 +64,7 @@ export default function Sidebar() {
         <p className="px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">
           {t("management") || "Management"}
         </p>
-        {isAdmin && (
+        {showUsers && (
           <Item to="/dashboard/users" icon={Users} label={t("users") || "Users"} />
         )}
         <Item to="/dashboard/profile" icon={User} label={t("profile") || "Profile"} />

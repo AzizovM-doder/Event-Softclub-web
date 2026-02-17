@@ -2,6 +2,7 @@ import { createSlice, nanoid } from "@reduxjs/toolkit";
 
 const initialState = {
   items: [], // newest first
+  firedIds: [], // track sent notifications to avoid duplicates
 };
 
 export const notificationsSlice = createSlice({
@@ -25,6 +26,12 @@ export const notificationsSlice = createSlice({
         };
       },
     },
+    markFired(state, action) {
+      // action.payload = "eventId_thresholdKey"
+      if (!state.firedIds.includes(action.payload)) {
+        state.firedIds.push(action.payload);
+      }
+    },
     markAllRead(state) {
       state.items.forEach((n) => (n.read = true));
     },
@@ -38,7 +45,7 @@ export const notificationsSlice = createSlice({
   },
 });
 
-export const { pushNotification, markAllRead, markRead, clearAll } =
+export const { pushNotification, markFired, markAllRead, markRead, clearAll } =
   notificationsSlice.actions;
 
 export default notificationsSlice.reducer;

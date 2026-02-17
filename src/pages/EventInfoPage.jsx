@@ -16,8 +16,23 @@ import {
   MapPin,
   ExternalLink,
   Sparkles,
+  User,
 } from "lucide-react";
 import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
+
+/* ---------------- status styles ---------------- */
+
+const STATUS_STYLES = {
+  PENDING: { bg: "bg-amber-500/80 text-white border-amber-400/50", dot: "bg-amber-200" },
+  COMPLETED: { bg: "bg-emerald-500/80 text-white border-emerald-400/50", dot: "bg-emerald-200" },
+  MISSED: { bg: "bg-red-500/80 text-white border-red-400/50", dot: "bg-red-200" },
+};
+
+const STATUS_LABEL_KEYS = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+  MISSED: "missed",
+};
 
 /* ---------------- helpers ---------------- */
 
@@ -183,13 +198,22 @@ export default function EventInfoPage() {
                     </div>
                   )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
-                  <div className="absolute bottom-8 left-8">
+                  <div className="absolute bottom-8 left-8 flex items-center gap-2 flex-wrap">
                     <Badge
-                      className={`rounded-xl px-4 py-1.5 text-sm shadow-xl backdrop-blur-md ${event.status ? "bg-emerald-500/80 text-white border-emerald-400/50" : "bg-zinc-500/80 text-white border-zinc-400/50"}`}
+                      className={`rounded-xl px-4 py-1.5 text-sm shadow-xl backdrop-blur-md ${(STATUS_STYLES[event.status] || STATUS_STYLES.PENDING).bg}`}
                       variant="outline"
                     >
-                      {event.status ? t("active") : t("inactive")}
+                      <span className={`h-2 w-2 rounded-full mr-2 ${(STATUS_STYLES[event.status] || STATUS_STYLES.PENDING).dot}`} />
+                      {t(STATUS_LABEL_KEYS[event.status] || "pending")}
                     </Badge>
+                    {event.category && (
+                      <Badge
+                        className="rounded-xl px-4 py-1.5 text-sm shadow-xl backdrop-blur-md bg-sky-500/20 text-sky-300 border-sky-500/30"
+                        variant="outline"
+                      >
+                        {event.category}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -316,6 +340,33 @@ export default function EventInfoPage() {
                           <p className="text-base font-medium text-muted-foreground">
                             {t("notSpecified")}
                           </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Mentor info card */}
+                <Card className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl shadow-xl">
+                  <CardContent className="p-6 space-y-4">
+                    <h3 className="font-semibold text-lg border-b border-white/10 pb-4">{t("mentorInfo")}</h3>
+                    <div className="flex items-start gap-4">
+                      <div className="rounded-2xl bg-sky-500/10 p-3 text-sky-500 ring-1 ring-sky-500/20">
+                        <User className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        {event.mentor ? (
+                          <>
+                            <p className="text-base font-semibold">{event.mentor.name}</p>
+                            {event.mentor.specialization && (
+                              <p className="text-sm text-muted-foreground">{event.mentor.specialization}</p>
+                            )}
+                            {event.mentor.level && (
+                              <Badge variant="secondary" className="mt-1 rounded-lg text-xs">{event.mentor.level}</Badge>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-base text-muted-foreground">{t("noMentorAssigned")}</p>
                         )}
                       </div>
                     </div>
