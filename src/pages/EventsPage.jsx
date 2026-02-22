@@ -66,6 +66,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
+import TiltCard from "@/components/ui/TiltCard";
 
 /* ---------------- helpers (NO timezone bugs) ---------------- */
 
@@ -586,6 +587,7 @@ export default function EventsPage() {
                       transition={{ duration: 0.45, delay: Math.min(idx * 0.06, 0.5) }}
                       className={isFeatured ? "sm:col-span-2 sm:row-span-2" : ""}
                     >
+                      <TiltCard className="h-full" glareColor="rgba(14, 165, 233, 0.2)">
                       <Card className="group relative h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/[0.06] hover:border-white/[0.15] flex flex-col">
                         {/* Cover image / gradient top strip */}
                         <div className={`relative w-full overflow-hidden ${isFeatured ? "h-56 sm:h-72" : "h-40"}`}>
@@ -601,7 +603,7 @@ export default function EventsPage() {
                           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
                           {/* Date badge – floating on the image */}
-                          <div className="absolute left-4 bottom-3 flex items-end gap-3">
+                          <div className="absolute left-4 bottom-3 flex items-end gap-3 z-20">
                             <div className={`flex flex-col items-center justify-center rounded-xl bg-background/80 backdrop-blur-md border border-white/10 shadow-lg ${isFeatured ? "px-4 py-2.5 min-w-[4rem]" : "px-3 py-1.5 min-w-[3.2rem]"}`}>
                               <span className={`font-bold leading-none text-foreground ${isFeatured ? "text-2xl" : "text-lg"}`}>{parsed.day}</span>
                               <span className={`font-semibold uppercase tracking-wider text-sky-400 mt-0.5 ${isFeatured ? "text-xs" : "text-[10px]"}`}>{parsed.month}</span>
@@ -755,6 +757,7 @@ export default function EventsPage() {
                           </div>
                         </CardContent>
                       </Card>
+                      </TiltCard>
                     </motion.div>
                   );
                 })}

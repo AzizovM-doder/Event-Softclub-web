@@ -11,9 +11,13 @@ import UsersPage from "./pages/UsersPage";
 import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "sonner";
 
+import { ThemeProvider } from "./context/ThemeContext";
+import GlowCursor from "./components/ui/GlowCursor";
+
 export default function App() {
   return (
-    <>
+    <ThemeProvider>
+    <GlowCursor />
     <Routes>
       <Route path="/login" element={<Login />} />
 
@@ -35,6 +39,6 @@ export default function App() {
       <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
     </Routes>
     <Toaster position="top-right" richColors />
-    </>
+    </ThemeProvider>
   );
 }

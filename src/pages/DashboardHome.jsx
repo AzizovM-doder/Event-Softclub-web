@@ -32,6 +32,7 @@ import {
 import { truncate } from "../utils/format";
 import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
 import { motion } from "framer-motion";
+import Hero3D from "../components/3d/Hero3D";
 
 function pickDateStr(e) {
   const d = (e?.date || "").trim();
@@ -56,10 +57,18 @@ const MONTH_KEYS = [
   "july", "august", "september", "october", "november", "december",
 ];
 
+import { useTheme } from "../context/ThemeContext";
+import TiltCard from "@/components/ui/TiltCard";
+import EventsGlobe from "@/components/visuals/EventsGlobe";
+
+// ... existing code ...
+
 export default function DashboardHome() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { styles } = useTheme(); // Get theme styles
+  // ... existing hooks ...
   const { items, loading } = useSelector((s) => s.events);
   const { items: photos, total: photosTotal, loading: photosLoading } = useSelector((s) => s.photos);
   const { items: videos, total: videosTotal, loading: videosLoading } = useSelector((s) => s.videos);
@@ -137,12 +146,18 @@ export default function DashboardHome() {
   return (
     <DashboardLayout>
       <div className="min-w-0 space-y-6 md:space-y-8">
+
         {/* ── Hero header ── */}
-        <FadeIn className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-sky-600/20 via-background to-blue-600/20 p-6 shadow-2xl backdrop-blur-3xl sm:p-10">
-          <div className="absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-sky-600/20 blur-[130px] animate-pulse" />
-          <div className="absolute bottom-[-20%] right-[-10%] h-[500px] w-[500px] rounded-full bg-blue-600/20 blur-[130px] animate-pulse delay-700" />
+        <FadeIn className={`relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br ${styles.heroGradient} p-6 shadow-2xl backdrop-blur-3xl sm:p-10 transition-colors duration-1000`}>
+          <div className="absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-white/5 blur-[130px] animate-pulse" />
+          <div className="absolute bottom-[-20%] right-[-10%] h-[500px] w-[500px] rounded-full bg-white/5 blur-[130px] animate-pulse delay-700" />
           
-          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          {/* 3D Element being absolutely positioned to the right side */}
+          <div className="absolute inset-y-0 right-0 w-1/2 md:w-1/3 pointer-events-none opacity-60 mix-blend-screen hidden sm:block">
+              <Hero3D className="h-full w-full" />
+          </div>
+
+          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between z-10">
             <div className="min-w-0 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 p-2 text-white shadow-lg shadow-sky-500/25">
@@ -186,7 +201,8 @@ export default function DashboardHome() {
             { label: t("photos") || "Photos", value: photosTotal || 0, icon: ImageIcon, color: "sky", hoverBg: "hover:bg-sky-500/5 hover:border-sky-500/10", loading: photosLoading },
             { label: t("videos") || "Videos", value: videosTotal || 0, icon: Video, color: "blue", hoverBg: "hover:bg-blue-500/5 hover:border-blue-500/10", loading: videosLoading },
           ].map((stat, idx) => (
-            <Scale key={stat.label} delay={0.1 + idx * 0.05} className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-5 shadow-lg backdrop-blur-xl transition-all hover:scale-[1.02] ${stat.hoverBg}`}>
+            <Scale key={stat.label} delay={0.1 + idx * 0.05} className="h-full">
+              <TiltCard className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-5 shadow-lg backdrop-blur-xl transition-all ${stat.hoverBg}`} glareColor={stat.color === 'sky' ? "rgba(14, 165, 233, 0.3)" : "rgba(255,255,255,0.2)"}>
               <div className="absolute inset-0 bg-gradient-to-br from-${stat.color}/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative flex items-center justify-between">
                 <div>
@@ -203,6 +219,7 @@ export default function DashboardHome() {
                   <stat.icon className="h-5 w-5" />
                 </div>
               </div>
+              </TiltCard>
             </Scale>
           ))}
         </div>
@@ -355,6 +372,19 @@ export default function DashboardHome() {
             </div>
           </SlideIn>
         </div>
+
+        {/* ── 3D Globe Section ── */}
+        <FadeIn delay={0.45} className="rounded-3xl border border-white/5 bg-white/5 shadow-xl backdrop-blur-xl overflow-hidden relative min-h-[500px]">
+           <div className="absolute top-5 left-5 z-10">
+               <div className="flex items-center gap-2">
+                 <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                    <MapPin className="h-5 w-5" />
+                 </div>
+                 <h3 className="font-semibold text-lg">{t("globalReach") || "Global Reach"}</h3>
+               </div>
+           </div>
+           <EventsGlobe />
+        </FadeIn>
 
         {/* ── Recent content previews (Admin) ── */}
         {isAdmin && (
