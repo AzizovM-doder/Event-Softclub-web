@@ -68,6 +68,8 @@ import { motion } from "framer-motion";
 import { FadeIn, SlideIn, Scale } from "@/components/ui/motion";
 import TiltCard from "@/components/ui/TiltCard";
 
+
+
 /* ---------------- helpers (NO timezone bugs) ---------------- */
 
 // date input wants "YYYY-MM-DD"
@@ -248,6 +250,7 @@ export default function EventsPage() {
   const fileRef = useRef(null);
 
   useEffect(() => {
+
     dispatch(fetchEvents());
     dispatch(fetchUsers());
   }, [dispatch]);
@@ -799,6 +802,8 @@ export default function EventsPage() {
               {/* LEFT inputs */}
               <form onSubmit={submit} className="lg:col-span-3 space-y-6">
                 <div className="grid gap-5 sm:grid-cols-2">
+
+
                   <div className="space-y-2">
                     <Label>{t("title")}</Label>
                     <Input
